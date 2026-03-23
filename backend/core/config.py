@@ -18,20 +18,6 @@ LLM_PROFILE_DEFAULTS = {
         "vllm_start_script": "/home/jiahuning2/LLM_Ability_Test/models/Qwen2.5-7B/start_vllm_fp16.sh",
         "vllm_conda_env": "qwen2.5",
     },
-    "14b-awq": {
-        "vllm_base_url": "http://127.0.0.1:8102/v1",
-        "vllm_model": "Qwen2.5-14B-Instruct-AWQ",
-        "local_qwen_model_path": "/home/jiahuning2/LLM_Ability_Test/models/Qwen2.5-14B/Qwen2.5-14B-Instruct-AWQ",
-        "vllm_start_script": "/home/jiahuning2/LLM_Ability_Test/models/Qwen2.5-14B/start_vllm_awq.sh",
-        "vllm_conda_env": "awq",
-    },
-    "7b-awq": {
-        "vllm_base_url": "http://127.0.0.1:8402/v1",
-        "vllm_model": "qwen2.5-7b-awq",
-        "local_qwen_model_path": "/home/jiahuning2/LLM_Ability_Test/models/Qwen2.5-7B/Qwen2.5-7B-Instruct-AWQ",
-        "vllm_start_script": "/home/jiahuning2/LLM_Ability_Test/models/Qwen2.5-7B/start_vllm_awq.sh",
-        "vllm_conda_env": "qwen2.5",
-    },
 }
 
 
@@ -49,7 +35,7 @@ class Settings(BaseSettings):
 
     llm_profile: str = Field(
         default="7b-fp16",
-        description="Named LLM runtime profile. Supported: 7b-fp16, 14b-awq, 7b-awq",
+        description="Named LLM runtime profile. Supported: 7b-fp16",
     )
 
     # vLLM Configuration
@@ -167,14 +153,10 @@ class Settings(BaseSettings):
         text = str(value or "7b-fp16").strip().lower()
         aliases = {
             "fp16": "7b-fp16",
+            "7b": "7b-fp16",
             "7b-fp16": "7b-fp16",
             "qwen2.5-7b-fp16": "7b-fp16",
-            "14b": "14b-awq",
-            "qwen2.5-14b-awq": "14b-awq",
-            "qwen2.5-14b": "14b-awq",
-            "7b": "7b-awq",
-            "qwen2.5-7b-awq": "7b-awq",
-            "qwen2.5-7b": "7b-awq",
+            "qwen2.5-7b": "7b-fp16",
         }
         normalized = aliases.get(text, text)
         if normalized not in LLM_PROFILE_DEFAULTS:

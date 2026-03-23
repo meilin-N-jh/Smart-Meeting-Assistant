@@ -87,15 +87,15 @@ class TestConfig:
             assert settings.port == 6493
 
     def test_settings_profile_override(self):
-        """Test switching to the stronger 14B-AWQ profile."""
+        """Test profile alias normalization for the supported 7B runtime."""
         from backend.core.config import Settings
 
-        with patch.dict(os.environ, {"LLM_PROFILE": "14b-awq"}, clear=False):
+        with patch.dict(os.environ, {"LLM_PROFILE": "7b"}, clear=False):
             settings = Settings()
-            assert settings.llm_profile == "14b-awq"
-            assert settings.vllm_base_url == "http://127.0.0.1:8102/v1"
-            assert settings.vllm_model == "Qwen2.5-14B-Instruct-AWQ"
-            assert settings.vllm_conda_env == "awq"
+            assert settings.llm_profile == "7b-fp16"
+            assert settings.vllm_base_url == "http://127.0.0.1:8400/v1"
+            assert settings.vllm_model == "qwen2.5-7b-fp16"
+            assert settings.vllm_conda_env == "qwen2.5"
 
 
 class TestASRService:

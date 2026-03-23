@@ -1,6 +1,6 @@
 # Smart Meeting Assistant
 
-A comprehensive AI-powered meeting assistant that provides real-time transcription, summarization, translation, action item extraction, and sentiment analysis using local LLMs via vLLM. The default runtime profile is `Qwen2.5-7B FP16`, selected after local latency checks for this workflow. `Qwen2.5-14B-Instruct-AWQ` remains available when you want a stronger but slower model.
+An AI-powered meeting assistant for real-time and offline meeting support. The system provides speech-to-text transcription, speaker attribution, meeting summarization, action item extraction, translation, and meeting sentiment analysis through a local `Qwen2.5-7B FP16` model served by vLLM.
 
 ## Features
 
@@ -42,9 +42,7 @@ A comprehensive AI-powered meeting assistant that provides real-time transcripti
 ### Backend
 - **FastAPI**: Modern Python web framework
 - **vLLM**: Local LLM inference engine
-- **Qwen2.5-7B FP16**: Default local language model for speed
-- **Qwen2.5-14B-AWQ**: Higher-capacity alternative when latency is less important
-- **Qwen2.5-7B-AWQ**: Lighter fallback model for constrained environments
+- **Qwen2.5-7B FP16**: Local language model for summary, action items, translation, and sentiment analysis
 - **faster-whisper**: Speech-to-text
 - **whisperx**: Speaker diarization
 
@@ -56,6 +54,33 @@ A comprehensive AI-powered meeting assistant that provides real-time transcripti
 ## Project Structure
 
 ```
+
+## Architecture
+
+The system is organized as a two-stage meeting pipeline:
+
+1. Fast transcript path
+   - microphone or file audio is transcribed first with `faster-whisper`
+   - transcript text is shown to the frontend as early as possible
+2. Background refinement path
+   - speaker refinement runs after the fast transcript is available
+   - summary, action items, and sentiment analysis are sent to vLLM in parallel
+
+High-level flow:
+
+`Audio Input -> Fast ASR -> Frontend Transcript -> Parallel LLM Analysis + Speaker Refinement -> Final Meeting View`
+
+## Real-Time Workflow
+
+For live recording, the frontend uses endpoint-style chunking instead of waiting for the whole recording:
+
+- speech is buffered while the user is talking
+- a short silence triggers a fast transcription flush
+- the transcript is appended immediately
+- the same chunk is refined in the background for speaker labels
+- once the recording stops, the full meeting view is finalized from the accumulated transcript
+
+This design improves perceived latency while still allowing speaker labels and downstream analysis to catch up.
 CS6493/
 ├── backend/
 │   ├── api/
@@ -99,16 +124,10 @@ CS6493/
 
 ### 1. vLLM Model Server
 
-Recommended default: start `Qwen2.5-7B FP16` in the `qwen2.5` environment.
+Start `Qwen2.5-7B FP16` in the `qwen2.5` environment.
 
 ```bash
 bash /home/jiahuning2/LLM_Ability_Test/models/Qwen2.5-7B/start_vllm_fp16.sh
-```
-
-Higher-capacity alternative:
-
-```bash
-bash /home/jiahuning2/LLM_Ability_Test/models/Qwen2.5-14B/start_vllm_awq.sh
 ```
 
 Manual environment variables for the default profile:
@@ -123,13 +142,8 @@ export VLLM_MODEL=qwen2.5-7b-fp16
 ### 2. Python Environment
 
 ```bash
-# Create conda environment
-conda create -n qwen2.5 python=3.10
-conda activate qwen2.5
-
-# Install dependencies
 cd /home/jiahuning2/LLM_Ability_Test/CS6493
-pip install -r requirements.txt
+conda run -n cs6493 pip install -r requirements.txt
 ```
 
 ### 3. Additional Dependencies (Optional)
@@ -178,9 +192,7 @@ AUDIO_SAMPLE_RATE=16000
 
 ## Running the Application
 
-### 1. Start vLLM (First)
-
-Make sure vLLM is running with the selected profile. Default:
+### 1. Start vLLM
 
 ```bash
 # In one terminal
@@ -200,7 +212,7 @@ Or with uvicorn:
 
 ```bash
 cd /home/jiahuning2/LLM_Ability_Test/CS6493
-conda run -n qwen2.5 uvicorn backend.main:app --host 0.0.0.0 --port 6493
+conda run -n cs6493 uvicorn backend.main:app --host 0.0.0.0 --port 6493
 ```
 
 ### 3. Access the Demo
@@ -283,11 +295,10 @@ curl -X POST http://localhost:6493/api/process-meeting \
 
 ### Demo A: Audio File Upload
 Upload an audio file and get:
-- Full transcription with speaker labels
-- Translation (if requested)
-- Summary
-- Action items
-- Sentiment analysis
+- Fast transcript shown first
+- Background speaker refinement
+- Summary, action items, and sentiment analysis in parallel
+- Translation on demand
 
 ### Demo B: Text Transcript Input
 Paste existing transcript text and get:
@@ -298,9 +309,10 @@ Paste existing transcript text and get:
 
 ### Demo C: Microphone Input
 Record from microphone and get:
-- Real-time transcription
-- Speaker identification
-- Full analysis pipeline
+- Incremental live transcription
+- Pause and resume recording
+- Background speaker refinement per chunk
+- Final meeting analysis after recording stops
 
 ## Sample Data
 
@@ -340,19 +352,18 @@ The application includes comprehensive error handling:
 
 ## Known Limitations
 
-1. **Microphone Recording**: Requires HTTPS or localhost for browser MediaRecorder
-2. **Long Meetings**: Processed in chunks for memory efficiency
-3. **Speaker Diarization**: Requires either whisperx or pyannote.audio
-4. **Offline Mode**: Works without internet once dependencies are installed
+1. **ASR latency**: full-file transcription is still the main bottleneck for longer recordings
+2. **Speaker refinement quality**: diarization quality depends on audio clarity and overlapping speech
+3. **Microphone recording**: browser recording requires localhost or HTTPS
+4. **Local model limits**: `Qwen2.5-7B FP16` is fast enough for demo use, but structured outputs may still need schema repair on difficult inputs
 
 ## Future Optimizations
 
-1. WebSocket streaming for real-time transcription
-2. Multi-language support expansion
-3. Custom prompt templates
-4. Meeting history storage
-5. Export to various formats (PDF, DOCX)
-6. Integration with calendar APIs
+1. Add evaluation scripts and a labeled meeting dataset for summary, action items, and sentiment
+2. Improve ASR cleanup and diarization robustness for noisy meetings
+3. Add evidence-linked highlighting between transcript segments and extracted results
+4. Expand multilingual evaluation cases
+5. Explore prompt tuning or lightweight SFT only after collecting enough error cases
 
 ## License
 

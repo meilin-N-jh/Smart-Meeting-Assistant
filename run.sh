@@ -12,7 +12,7 @@ NC='\033[0m' # No Color
 
 PROJECT_DIR="/home/jiahuning2/LLM_Ability_Test/CS6493"
 APP_ENV="${APP_ENV:-cs6493}"
-MODEL_ENV="${MODEL_ENV:-awq}"
+MODEL_ENV="${MODEL_ENV:-qwen2.5}"
 
 echo -e "${GREEN}Smart Meeting Assistant${NC}"
 echo "=============================="
@@ -31,7 +31,7 @@ set -a
 source ./.env
 set +a
 
-VLLM_BASE_URL="${VLLM_BASE_URL:-http://127.0.0.1:8102/v1}"
+VLLM_BASE_URL="${VLLM_BASE_URL:-http://127.0.0.1:8400/v1}"
 VLLM_MODELS_URL="${VLLM_BASE_URL%/}/models"
 
 # Ensure localhost traffic never goes through proxy.
@@ -65,7 +65,7 @@ if curl --noproxy '*' --max-time 5 -s "${VLLM_MODELS_URL}" > /dev/null 2>&1; the
 else
     echo -e "${RED}vLLM is NOT running!${NC}"
     echo "Please start vLLM first:"
-    echo "  conda run -n ${MODEL_ENV} bash /home/jiahuning2/LLM_Ability_Test/models/Qwen2.5-14B/start_vllm_awq.sh"
+    echo "  conda run -n ${MODEL_ENV} bash /home/jiahuning2/LLM_Ability_Test/models/Qwen2.5-7B/start_vllm_fp16.sh"
     exit 1
 fi
 
