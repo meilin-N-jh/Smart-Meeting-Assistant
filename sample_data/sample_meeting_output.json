@@ -1,0 +1,143 @@
+{
+  "transcript": {
+    "text": "Alice: Good morning everyone. Let's start our weekly project sync. Bob, can you give us an update on the backend development? Bob: Sure. We've made good progress on the API endpoints. The user authentication module is complete, and we're currently working on the data export feature. I think we'll finish by Thursday. Alice: That's great. Carol, what about the frontend? Carol: I've finished the dashboard redesign. The new charts are working well. However, I'm waiting for the API to be ready before I can connect the data. Alice: Got it. Bob, can you prioritize finishing the export endpoint so Carol can proceed? Bob: Absolutely. I can have it done by Wednesday afternoon. Alice: Perfect. Let's also discuss the budget issue. We need to allocate more resources to testing. Carol, what's your take? Carol: I agree. We should hire at least one more QA engineer. The current team is overwhelmed. Bob: I think we can manage with our current team if we automate more tests. Alice: Let's not rush this. Carol, can you prepare a proposal for additional testing resources by next week? Carol: Sure, I'll have it ready by Friday. Bob: I have a concern though. If we add more people, the onboarding will slow us down. Alice: That's a valid point. Let's discuss this in detail next meeting. Any other topics? Carol: Yes, the client meeting is next Tuesday. We need to prepare the demo. Alice: Good reminder. Let's schedule a prep meeting for Monday. Bob, can you prepare the technical demo? Bob: I'll need Alice to help with the business logic explanation. Alice: Of course. I'll join the prep meeting. Let's wrap up here. Any final thoughts? Bob: I think we should also consider using a CDN for the static assets to improve performance. Alice: Good idea. Add that to the backlog. Thanks everyone.",
+    "segments": [
+      {"start": 0.0, "end": 5.2, "speaker": "Alice", "text": "Good morning everyone. Let's start our weekly project sync."},
+      {"start": 5.2, "end": 8.5, "speaker": "Alice", "text": "Bob, can you give us an update on the backend development?"},
+      {"start": 8.5, "end": 15.3, "speaker": "Bob", "text": "Sure. We've made good progress on the API endpoints."},
+      {"start": 15.3, "end": 22.1, "speaker": "Bob", "text": "The user authentication module is complete, and we're currently working on the data export feature."},
+      {"start": 22.1, "end": 25.0, "speaker": "Bob", "text": "I think we'll finish by Thursday."},
+      {"start": 25.0, "end": 27.5, "speaker": "Alice", "text": "That's great."},
+      {"start": 27.5, "end": 30.0, "speaker": "Alice", "text": "Carol, what about the frontend?"},
+      {"start": 30.0, "end": 38.2, "speaker": "Carol", "text": "I've finished the dashboard redesign. The new charts are working well."},
+      {"start": 38.2, "end": 44.5, "speaker": "Carol", "text": "However, I'm waiting for the API to be ready before I can connect the data."},
+      {"start": 44.5, "end": 47.0, "speaker": "Alice", "text": "Got it."},
+      {"start": 47.0, "end": 55.3, "speaker": "Alice", "text": "Bob, can you prioritize finishing the export endpoint so Carol can proceed?"},
+      {"start": 55.3, "end": 59.0, "speaker": "Bob", "text": "Absolutely. I can have it done by Wednesday afternoon."},
+      {"start": 59.0, "end": 62.0, "speaker": "Alice", "text": "Perfect."},
+      {"start": 62.0, "end": 70.5, "speaker": "Alice", "text": "Let's also discuss the budget issue. We need to allocate more resources to testing."},
+      {"start": 70.5, "end": 73.0, "speaker": "Alice", "text": "Carol, what's your take?"},
+      {"start": 73.0, "end": 80.2, "speaker": "Carol", "text": "I agree. We should hire at least one more QA engineer."},
+      {"start": 80.2, "end": 83.5, "speaker": "Carol", "text": "The current team is overwhelmed."},
+      {"start": 83.5, "end": 90.0, "speaker": "Bob", "text": "I think we can manage with our current team if we automate more tests."},
+      {"start": 90.0, "end": 94.0, "speaker": "Alice", "text": "Let's not rush this."},
+      {"start": 94.0, "end": 102.5, "speaker": "Alice", "text": "Carol, can you prepare a proposal for additional testing resources by next week?"},
+      {"start": 102.5, "end": 106.0, "speaker": "Carol", "text": "Sure, I'll have it ready by Friday."},
+      {"start": 106.0, "end": 115.2, "speaker": "Bob", "text": "I have a concern though. If we add more people, the onboarding will slow us down."},
+      {"start": 115.2, "end": 120.0, "speaker": "Alice", "text": "That's a valid point."},
+      {"start": 120.0, "end": 125.5, "speaker": "Alice", "text": "Let's discuss this in detail next meeting. Any other topics?"},
+      {"start": 125.5, "end": 132.0, "speaker": "Carol", "text": "Yes, the client meeting is next Tuesday. We need to prepare the demo."},
+      {"start": 132.0, "end": 137.5, "speaker": "Alice", "text": "Good reminder. Let's schedule a prep meeting for Monday."},
+      {"start": 137.5, "end": 143.0, "speaker": "Alice", "text": "Bob, can you prepare the technical demo?"},
+      {"start": 143.0, "end": 150.2, "speaker": "Bob", "text": "I'll need Alice to help with the business logic explanation."},
+      {"start": 150.2, "end": 155.0, "speaker": "Alice", "text": "Of course. I'll join the prep meeting."},
+      {"start": 155.0, "end": 158.0, "speaker": "Alice", "text": "Let's wrap up here. Any final thoughts?"},
+      {"start": 158.0, "end": 166.5, "speaker": "Bob", "text": "I think we should also consider using a CDN for the static assets to improve performance."},
+      {"start": 166.5, "end": 172.0, "speaker": "Alice", "text": "Good idea. Add that to the backlog. Thanks everyone."}
+    ],
+    "language": "en",
+    "duration": 172.0
+  },
+  "summary": {
+    "title": "Weekly Project Sync - Backend and Frontend Progress",
+    "overview": "Weekly project sync covering backend API development progress, frontend dashboard completion, testing resource allocation, and client demo preparation.",
+    "key_topics": [
+      "Backend API development progress",
+      "Frontend dashboard redesign completion",
+      "Testing resource allocation",
+      "Client meeting preparation"
+    ],
+    "decisions": [
+      "Bob will finish data export endpoint by Wednesday afternoon",
+      "Prep meeting scheduled for Monday",
+      "Alice will help with client demo"
+    ],
+    "blockers": [
+      "Frontend waiting for API endpoint completion"
+    ],
+    "next_steps": [
+      "Bob to complete export endpoint by Wednesday",
+      "Carol to prepare QA resource proposal by Friday",
+      "Schedule prep meeting for Monday client demo"
+    ],
+    "concise_summary": "Key topics covered: Backend API development is progressing well with authentication complete and export feature nearly done. Frontend dashboard redesign is finished, awaiting API. Testing resources discussion tabled for next meeting. Client demo prep scheduled with Monday prep meeting."
+  },
+  "action_items": [
+    {
+      "id": 1,
+      "assignee": "Bob",
+      "task": "Finish data export endpoint",
+      "deadline": "Wednesday afternoon",
+      "priority": "high",
+      "source_text": "Bob: Absolutely. I can have it done by Wednesday afternoon.",
+      "confidence": 0.95
+    },
+    {
+      "id": 2,
+      "assignee": "Carol",
+      "task": "Prepare proposal for additional testing resources",
+      "deadline": "Friday",
+      "priority": "medium",
+      "source_text": "Alice: Carol, can you prepare a proposal for additional testing resources by next week? Carol: Sure, I'll have it ready by Friday.",
+      "confidence": 0.9
+    },
+    {
+      "id": 3,
+      "assignee": "Bob",
+      "task": "Prepare technical demo for client meeting",
+      "deadline": "Monday (prep meeting)",
+      "priority": "high",
+      "source_text": "Bob, can you prepare the technical demo?",
+      "confidence": 0.85
+    },
+    {
+      "id": 4,
+      "assignee": "Alice",
+      "task": "Help with business logic explanation for demo",
+      "deadline": "Monday (prep meeting)",
+      "priority": "medium",
+      "source_text": "Bob: I'll need Alice to help with the business logic explanation. Alice: Of course. I'll join the prep meeting.",
+      "confidence": 0.9
+    }
+  ],
+  "sentiment": {
+    "overall_sentiment": "positive",
+    "engagement_level": "high",
+    "emotional_moments": [],
+    "agreements": [
+      {
+        "speaker": "Carol",
+        "statement": "We should hire at least one more QA engineer",
+        "evidence": "Carol: I agree. We should hire at least one more QA engineer."
+      },
+      {
+        "speaker": "Alice",
+        "statement": "Let's add CDN to backlog",
+        "evidence": "Alice: Good idea. Add that to the backlog."
+      }
+    ],
+    "disagreements": [
+      {
+        "speaker": "Bob",
+        "statement": "We can manage with current team",
+        "evidence": "Bob: I think we can manage with our current team if we automate more tests."
+      },
+      {
+        "speaker": "Carol",
+        "statement": "Need to hire more QA",
+        "evidence": "Carol: I agree. We should hire at least one more QA engineer. The current team is overwhelmed."
+      }
+    ],
+    "tension_points": [],
+    "hesitation_signals": [],
+    "evidence_quotes": [
+      "Bob: I have a concern though. If we add more people, the onboarding will slow us down.",
+      "Alice: Let's not rush this. Carol, can you prepare a proposal for additional testing resources by next week?"
+    ],
+    "recommendations": [
+      "Consider automation testing to reduce QA burden",
+      "Schedule follow-up meeting to discuss hiring decision"
+    ]
+  },
+  "processing_time": 12.5
+}

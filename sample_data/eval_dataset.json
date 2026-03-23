@@ -1,0 +1,26 @@
+[
+  {
+    "id": "meeting_001_tech_debate",
+    "transcript": "Alice: Okay, let's discuss the new architecture for the messaging queue.\nBob: I really think we should stick to RabbitMQ. It's proven and we know it well.\nAlice: But Kafka handles broader pub-sub patterns better. I am very concerned that RabbitMQ won't scale next quarter.\nBob: I disagree. With proper clustering, it scales fine. Transitioning to Kafka is too risky right now.\nCharlie: Let's calm down. Bob, could you benchmark RabbitMQ clustering by Wednesday?\nBob: Fine, I will send the benchmark report by Wednesday EOD.\nCharlie: And Alice, can you list out the specific pub-sub use cases Kafka solves for us by Friday?",
+    "expected_action_items": [
+      {"assignee": "Bob", "task": "benchmark RabbitMQ clustering", "deadline": "Wednesday EOD"},
+      {"assignee": "Alice", "task": "list out specific pub-sub use cases Kafka solves", "deadline": "Friday"}
+    ],
+    "expected_sentiment": {
+      "tension_points": [{"topic": "Messaging queue architecture (RabbitMQ vs Kafka)"}],
+      "overall_sentiment": "mixed"
+    }
+  },
+  {
+    "id": "meeting_002_ambiguous_tasks",
+    "transcript": "Manager: So the marketing campaign is launching next week. Who is updating the social media banners?\nDave: I can do it, or maybe Sarah since she has the original files.\nSarah: I'm swamped. Someone else needs to handle it.\nDave: Alright, I'll take care of the banners by Monday morning. What about the email blast?\nManager: We need that drafted. Let's just say the team will figure it out before Tuesday.\nDave: I'll ask Frank to draft the email tomorrow.",
+    "expected_action_items": [
+      {"assignee": "Dave", "task": "update social media banners", "deadline": "Monday morning"},
+      {"assignee": "Frank", "task": "draft the email", "deadline": "tomorrow"}
+    ],
+    "expected_sentiment": {
+      "hesitation_signals": [{"speaker": "Dave", "signal": "I can do it, or maybe Sarah..."}],
+      "overall_sentiment": "neutral"
+    }
+  }
+]
