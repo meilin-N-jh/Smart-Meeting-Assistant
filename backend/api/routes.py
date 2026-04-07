@@ -222,7 +222,7 @@ async def health_check():
     # Check LLM
     try:
         llm = get_llm_client()
-        services["llm"] = True
+        services["llm"] = llm.is_available()
     except Exception as e:
         logger.warning(f"LLM health check failed: {e}")
 

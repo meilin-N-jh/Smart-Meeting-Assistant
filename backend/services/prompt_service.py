@@ -10,7 +10,10 @@ Rules:
 1. Preserve speaker labels and timestamps exactly if they appear.
 2. Preserve line breaks and paragraph structure.
 3. Keep commitments, dates, and task ownership accurate.
-4. Return only translated text, with no explanations.
+4. If the input line format is `[timestamp] Speaker: utterance`, keep `[timestamp] Speaker:` unchanged and translate only `utterance`.
+5. Do not repeat, translate, or prepend the speaker label inside the translated utterance.
+6. If an utterance is already in the target language, keep it as-is.
+7. Return only translated text, with no explanations.
 
 Original:
 {text}
@@ -19,27 +22,37 @@ Translation:"""
 
 # Summarization prompt template
 SUMMARIZATION_TEMPLATE = """You are a professional meeting assistant.
-Analyze the following meeting transcript and produce a structured summary for participants who did not attend.
+Return exactly one JSON object summarizing the meeting transcript below.
 
 Meeting Transcript:
 {transcript}
 
-Provide a summary in JSON format with the following structure:
+Use exactly this schema:
 {{
-    "title": "Meeting Title",
-    "overview": "High-level summary of the meeting in 2-4 sentences",
-    "key_topics": ["Distinct topic 1", "Distinct topic 2"],
-    "decisions": ["Concrete decision 1", "Concrete decision 2"],
-    "blockers": ["Open risk or blocker 1"],
-    "next_steps": ["Follow-up step with owner/deadline if known"],
-    "concise_summary": "Short executive-style recap in 3-6 sentences"
+    "title": "short meeting title",
+    "overview": "2-3 sentence overview",
+    "key_topics": ["short topic phrase"],
+    "decisions": ["explicit decision only"],
+    "blockers": ["unresolved risk or blocker"],
+    "next_steps": ["future action or follow-up"],
+    "concise_summary": "short executive recap"
 }}
 
 Rules:
-- Focus on synthesis, not verbatim transcript copying.
-- Prefer concrete outcomes over generic statements.
-- If no explicit decision exists, keep decisions as [].
-- Keep each list item concise and non-duplicated.
+- Output JSON only. No markdown. No explanation.
+- `decisions` must contain only explicit meeting decisions.
+- `blockers` must contain unresolved issues, risks, or dependencies.
+- `next_steps` must contain concrete future actions.
+- Use [] for any empty list field.
+- Keep list items concise and non-duplicated.
+- Use short noun phrases for `key_topics`.
+- For multilingual transcripts, write every field in concise English.
+- Make `key_topics` specific meeting concepts, such as "payment patch incident", "rollback decision", or "timeout investigation", not generic fragments like "issue" or "discussion".
+- Write `blockers` as unresolved statements, for example: "The timeout issue causing the error spike is not isolated yet."
+- Put only one future action in each `next_steps` item. Split separate actions into separate list items.
+- Put items such as "prepare", "review", "follow up", or "investigate" under `next_steps`, not `decisions`, unless the transcript explicitly says that action itself was approved as a decision.
+- Keep `decisions` for statements like "we decided", "today's decision is", "approved", or "finalized".
+- In `decisions`, keep the main object from the transcript and prefer wording like "Roll back the payment patch immediately." instead of shorter phrases like "rollback the patch now".
 
 Respond ONLY with valid JSON."""
 
@@ -65,6 +78,8 @@ Rules:
 - Reconstruct the conversation into clean notes; do not copy long transcript spans.
 - Preserve ownership, deadlines, and unresolved questions.
 - Keep each list concise and non-duplicated.
+- Keep conditional plans explicit. For example, "ship Tuesday if legal approves Monday" should stay conditional.
+- If someone raises concern or disagreement, include it in blockers or interaction_signals rather than hiding it.
 
 Respond ONLY with valid JSON."""
 
@@ -89,6 +104,7 @@ Rules:
 - Consolidate across chunks rather than repeating each chunk.
 - Prefer decisions and next steps that matter to participants after the meeting.
 - Preserve important unresolved tension or risk if present.
+- If no explicit meeting decision exists, keep decisions as [].
 
 Respond ONLY with valid JSON."""
 
@@ -99,14 +115,14 @@ Analyze the following transcript and extract concrete commitments, follow-ups, a
 Meeting Transcript:
 {transcript}
 
-Extract all action items in JSON format:
+Return exactly one JSON object in this format:
 {{
     "action_items": [
         {{
             "id": 1,
             "assignee": "Person name/speaker label or 'unknown' if unclear",
-            "task": "Specific deliverable/action (not vague)",
-            "deadline": "Deadline phrase if mentioned, otherwise null",
+            "task": "Short normalized verb phrase",
+            "deadline": "Exact deadline phrase if mentioned, otherwise null",
             "priority": "high/medium/low",
             "source_text": "The exact supporting quote from transcript",
             "confidence": 0.0-1.0
@@ -117,7 +133,26 @@ Extract all action items in JSON format:
 Rules:
 - Include only real commitments or task assignments.
 - Do not extract background discussion as action items.
-- Keep task phrasing concise and execution-oriented.
+- Return JSON only. No markdown. No explanation.
+- `task` must be a concise action phrase, not a full sentence. Good: "Follow up with the vendor". Bad: "Someone should follow up with the vendor this week."
+- Preserve deadline phrases exactly when they appear, such as "this week", "tonight", "tomorrow morning", "by Friday", or "next Tuesday".
+- If the transcript says "someone should", "we should", or gives a task without a confirmed owner, set `assignee` to "unknown".
+- If a manager assigns a task and the assignee later accepts it, prefer the acceptance or commitment sentence as `source_text`.
+- If there is no acceptance sentence, use the clearest assignment sentence as `source_text`.
+- Keep one task per item and avoid duplicates.
+- Use `medium` unless urgency is explicit.
+- Use `null` for missing deadlines.
+
+Examples:
+Transcript line: "Someone should follow up with the vendor this week."
+Output item:
+{{"id": 1, "assignee": "unknown", "task": "Follow up with the vendor", "deadline": "this week", "priority": "medium", "source_text": "Someone should follow up with the vendor this week.", "confidence": 0.82}}
+
+Transcript lines:
+- "Bob, update the roadmap tonight."
+- "Okay, I will update it tonight."
+Output item:
+{{"id": 1, "assignee": "Bob", "task": "Update the roadmap", "deadline": "tonight", "priority": "medium", "source_text": "Okay, I will update it tonight.", "confidence": 0.93}}
 
 Respond ONLY with valid JSON."""
 
@@ -185,6 +220,7 @@ Provide analysis in JSON format:
 }}
 
 Rules:
+- Return JSON only. No markdown. No explanation.
 - Focus on interaction signals: agreement, disagreement, tension, hesitation, emotional shifts.
 - Prefer evidence-backed observations over vague labels.
 - If a speaker clearly supports a proposal, put it under agreements.
@@ -193,6 +229,25 @@ Rules:
 - Include emotionally significant moments whenever someone strongly agrees, objects, hesitates, or surfaces risk.
 - Include evidence quotes for major claims whenever possible.
 - Keep recommendations practical for the next meeting.
+- Use `engagement_level="high"` when multiple speakers actively react to the same decision, risk, or conflict.
+- Use `overall_sentiment="mixed"` when the meeting contains both forward pressure and explicit concern, objection, or risk escalation.
+- For disagreement, capture pushback against a proposal, timeline, or decision even if the speaker does not literally say "I disagree".
+- In `statement`, `description`, `topic`, and `recommendations`, write concise English summaries even if the evidence quote is multilingual.
+- For tension_points, summarize the contested issue, such as schedule pressure versus product risk.
+- When a speaker says they share another person's concern, record that under `agreements` and keep the concern itself under `disagreements` or `tension_points`.
+- In `disagreements`, list the speaker(s) who push back or raise the concern, not the speaker defending the original plan.
+- If the transcript is a calm status check with little reaction, it is acceptable for signal lists to stay empty.
+
+Example pattern:
+- "Let's commit to the current launch date."
+- "I am not convinced this will work if testing slips again."
+- "I share that concern. The current timeline still feels risky."
+Expected interpretation:
+- `overall_sentiment`: "mixed"
+- `engagement_level`: "high"
+- `agreements`: support for the concern
+- `disagreements`: pushback on the launch decision
+- `tension_points`: launch timing versus testing risk
 
 Respond ONLY with valid JSON."""
 
@@ -239,6 +294,61 @@ Strict requirements:
 - Use speaker labels from the transcript whenever possible.
 - Every disagreement, hesitation, or tension point should include evidence.
 - If the meeting is mostly calm and informational, still identify any notable agreement, caution, or uncertainty signals you can find.
+- Mark `engagement_level` as `high` when several speakers respond to the same contested topic.
+- Mark `overall_sentiment` as `mixed` when urgency or support coexists with concern, risk, or resistance.
+- Treat phrases like "I am worried", "I am not convinced", "too risky", "too high", and "I share that concern" as strong interaction signals.
+- If one speaker supports another person's concern, include that under `agreements`.
+- If people are split between staying on schedule and reducing risk, include a `tension_points` item about schedule versus quality/risk.
+- Write `statement`, `description`, `topic`, and `recommendations` in concise English, even if the quote itself is Chinese or mixed-language.
+- In `disagreements`, identify the speaker raising the objection or concern. Do not use the speaker defending the current plan as the disagreement entry unless they are explicitly objecting to someone else.
+
+Example output style for a conflict-heavy meeting:
+{{
+    "overall_sentiment": "mixed",
+    "engagement_level": "high",
+    "emotional_moments": [
+        {{
+            "timestamp": "00:01",
+            "description": "QA raises a concrete quality risk that shifts the meeting tone.",
+            "speaker": "QA",
+            "sentiment": "negative"
+        }}
+    ],
+    "agreements": [
+        {{
+            "speaker": "Engineering Lead",
+            "statement": "Engineering Lead agrees with QA's concern about launch risk.",
+            "evidence": "我同意 QA 的担心，如果今天不解决这个问题，周五上线太冒险了。"
+        }}
+    ],
+    "disagreements": [
+        {{
+            "speaker": "QA",
+            "statement": "QA pushes back on keeping the current launch date because crash risk remains high.",
+            "evidence": "I am worried because the crash rate is still too high."
+        }},
+        {{
+            "speaker": "Engineering Lead",
+            "statement": "Engineering Lead also pushes back on launching Friday until the issue is fixed.",
+            "evidence": "我同意 QA 的担心，如果今天不解决这个问题，周五上线太冒险了。"
+        }}
+    ],
+    "tension_points": [
+        {{
+            "speakers": ["PM", "QA", "Engineering Lead"],
+            "topic": "Launch timing versus product quality risk",
+            "evidence": "I am worried because the crash rate is still too high."
+        }}
+    ],
+    "hesitation_signals": [],
+    "speaker_signals": [],
+    "evidence_quotes": [
+        "I am worried because the crash rate is still too high."
+    ],
+    "recommendations": [
+        "Resolve the crash-rate blocker before confirming the launch date."
+    ]
+}}
 
 Respond ONLY with valid JSON."""
 

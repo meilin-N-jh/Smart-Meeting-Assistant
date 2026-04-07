@@ -240,6 +240,30 @@
             flex-wrap: wrap;
         }
 
+        .demo-capture-controls {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .demo-capture-note {
+            font-size: 0.78rem;
+            color: var(--text-tertiary);
+            padding: 6px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(8, 47, 42, 0.08);
+            background: rgba(255, 255, 255, 0.82);
+            max-width: 420px;
+        }
+
+        .demo-capture-note.recording {
+            color: var(--danger);
+            border-color: rgba(239, 68, 68, 0.2);
+            background: rgba(239, 68, 68, 0.08);
+            font-weight: 600;
+        }
+
         .live-badge {
             display: inline-flex;
             align-items: center;
@@ -491,6 +515,96 @@
             padding: 10px 12px;
         }
 
+        .live-diagnostics {
+            margin-bottom: 18px;
+            padding: 12px 14px;
+            border-radius: var(--radius);
+            border: 1px solid rgba(8, 47, 42, 0.10);
+            background: rgba(255, 255, 255, 0.86);
+            display: none;
+        }
+
+        .live-diagnostics.visible {
+            display: block;
+        }
+
+        .live-diagnostics-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+            font-size: 0.82rem;
+        }
+
+        .live-diagnostics-label {
+            font-weight: 700;
+            color: var(--text-secondary);
+        }
+
+        .live-diagnostics-note {
+            color: var(--text-tertiary);
+            text-align: right;
+        }
+
+        .live-meter-track {
+            width: 100%;
+            height: 10px;
+            border-radius: 999px;
+            background: rgba(15, 118, 110, 0.10);
+            overflow: hidden;
+        }
+
+        .live-meter-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #0f766e 0%, #14b8a6 48%, #f59e0b 78%, #ef4444 100%);
+            transition: width 100ms linear;
+        }
+
+        .live-diagnostics-meta {
+            margin-top: 8px;
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            color: var(--text-tertiary);
+            font-size: 0.78rem;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .service-status-note {
+            margin-bottom: 16px;
+            font-size: 0.84rem;
+            border-radius: var(--radius);
+            padding: 10px 12px;
+            border: 1px solid rgba(8, 47, 42, 0.08);
+            background: rgba(255, 255, 255, 0.8);
+            color: var(--text-secondary);
+        }
+
+        .service-status-note.degraded {
+            background: rgba(245, 158, 11, 0.10);
+            border-color: rgba(245, 158, 11, 0.28);
+            color: #9a3412;
+        }
+
+        .service-status-note.healthy {
+            background: rgba(16, 185, 129, 0.10);
+            border-color: rgba(16, 185, 129, 0.25);
+            color: #065f46;
+        }
+
+        .inline-warning {
+            margin-top: 12px;
+            padding: 10px 12px;
+            border-radius: var(--radius);
+            border: 1px solid rgba(245, 158, 11, 0.28);
+            background: rgba(245, 158, 11, 0.08);
+            color: #9a3412;
+            font-size: 0.84rem;
+        }
+
         .metrics-row {
             display: grid;
             grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -555,6 +669,14 @@
             background: var(--bg-tertiary);
             border-radius: var(--radius);
             margin-bottom: 12px;
+            border: 1px solid transparent;
+            transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+        }
+
+        .transcript-item.focused {
+            border-color: rgba(245, 158, 11, 0.65);
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+            transform: translateY(-1px);
         }
 
         .transcript-meta {
@@ -625,6 +747,30 @@
         .action-meta {
             font-size: 0.85rem;
             color: var(--text-tertiary);
+        }
+
+        .evidence-link {
+            margin-top: 8px;
+            padding: 0;
+            border: none;
+            background: transparent;
+            color: var(--primary-dark);
+            font-size: 0.82rem;
+            text-align: left;
+            cursor: pointer;
+            font-family: inherit;
+            line-height: 1.5;
+        }
+
+        .evidence-link:hover {
+            color: var(--primary);
+            text-decoration: underline;
+        }
+
+        .upload-file-meta {
+            margin-top: 14px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
         }
 
         /* Summary */
@@ -793,6 +939,7 @@
         <div id="selectionView">
             <h2 style="text-align: center; margin-bottom: 12px; font-size: 1.65rem; font-family:'Space Grotesk', sans-serif;">Meeting Assistant Workspace</h2>
             <p style="text-align: center; color: var(--text-tertiary); margin-bottom: 40px;">Capture your meeting, generate shared understanding, and drive follow-through.</p>
+            <div id="serviceStatusSelection" class="service-status-note" style="max-width: 900px; margin: 0 auto 24px;">Checking backend services...</div>
 
             <div class="selection-grid">
                 <div class="option-card" onclick="showRecording()">
@@ -830,9 +977,9 @@
                     <select id="sourceLang">
                         <option value="auto">Auto detect</option>
                         <option value="en">English</option>
-                        <option value="zh">中文</option>
-                        <option value="ja">日本語</option>
-                        <option value="ko">한국어</option>
+                        <option value="zh">Chinese (zh)</option>
+                        <option value="ja">Japanese (ja)</option>
+                        <option value="ko">Korean (ko)</option>
                         <option value="es">Español</option>
                     </select>
                 </div>
@@ -864,6 +1011,7 @@
                 <div class="upload-icon">📤</div>
                 <h3>Click to upload or drag and drop</h3>
                 <p>MP3, WAV, M4A up to 500MB</p>
+                <div class="upload-file-meta" id="uploadFileMeta">No file selected</div>
                 <input type="file" id="fileInput" accept="audio/*" onchange="handleFileSelect(this)">
             </div>
         </div>
@@ -912,6 +1060,20 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
             <div id="pipelineStatus" class="pipeline-note">
                 Status: waiting for input
             </div>
+            <div id="liveDiagnostics" class="live-diagnostics" aria-live="polite">
+                <div class="live-diagnostics-head">
+                    <span class="live-diagnostics-label">Mic Input Monitor</span>
+                    <span class="live-diagnostics-note" id="liveDiagnosticsNote">Waiting for microphone access...</span>
+                </div>
+                <div class="live-meter-track">
+                    <div class="live-meter-fill" id="liveMeterFill"></div>
+                </div>
+                <div class="live-diagnostics-meta">
+                    <span id="liveLevelText">Level: 0%</span>
+                    <span id="liveThresholdText">Speech gate: 0%</span>
+                </div>
+            </div>
+            <div id="serviceStatusResults" class="service-status-note">Checking backend services...</div>
 
             <div class="metrics-row">
                 <div class="metric-chip">
@@ -1002,14 +1164,14 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
                         <div style="margin-bottom: 12px;">
                             <select id="targetLang" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.9rem;">
                                 <option value="en">English</option>
-                                <option value="zh">中文</option>
-                                <option value="ja">日本語</option>
-                                <option value="ko">한국어</option>
+                                <option value="zh">Chinese (zh)</option>
+                                <option value="ja">Japanese (ja)</option>
+                                <option value="ko">Korean (ko)</option>
                                 <option value="es">Español</option>
                             </select>
                         </div>
                         <button id="translateBtn" class="btn btn-primary" style="width: 100%; margin-bottom: 12px;" onclick="translateText()">Translate</button>
-                        <div id="translationContent" style="max-height: 200px; overflow-y: auto;">
+                        <div id="translationContent" style="max-height: 320px; min-height: 240px; overflow-y: auto;">
                             <p style="color: var(--text-tertiary); font-size: 0.85rem;">Translate transcript to another language</p>
                         </div>
                     </div>
@@ -1050,7 +1212,14 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
             liveBufferedSpeechMs: 0,
             liveBufferedSilenceMs: 0,
             liveFlushRequested: false,
-            liveVadThreshold: 0.012,
+            liveVadThreshold: 0.0045,
+            liveNoiseFloor: 0.0015,
+            liveAdaptiveVadThreshold: 0.0045,
+            liveInstantRms: 0,
+            livePeakRms: 0,
+            liveSignalSeen: false,
+            lastLiveSignalAt: 0,
+            lastLiveDiagnosticsPaintAt: 0,
             liveSilenceFlushMs: 520,
             liveMinSpeechFlushMs: 850,
             liveMaxChunkSeconds: 7,
@@ -1066,17 +1235,31 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
             translationTargetLang: '',
             translationInFlight: false,
             translationRequestId: 0,
+            speakerRefinementInFlight: false,
             detectedLanguage: 'auto',
             languageVotes: {},
             processingTime: null,
+            transcriptFocusKey: null,
+            serviceHealth: null,
             activeTab: 'notes',
             audioFile: null,
             recordingChunkSeconds: 1.2,
             liveMinChunkSeconds: 0.55,
             liveTranscribeCadenceMs: 900,
             liveMode: false,
-            _finalizeAfterStop: true
+            _finalizeAfterStop: true,
+            demoCaptureRecorder: null,
+            demoCaptureChunks: [],
+            demoCaptureStream: null,
+            demoCaptureMicStream: null,
+            demoCaptureAudioContext: null,
+            demoCaptureAudioDestination: null,
+            demoCaptureStartedAt: null,
+            demoCaptureHasDisplayAudio: false,
+            demoCaptureHasMicAudio: false,
+            demoCaptureUiInterval: null
         };
+        window.__MEETINGFLOW_STATE__ = state;
 
         const speakerColors = ['#0f766e', '#f59e0b', '#0ea5e9', '#ef4444', '#22c55e', '#4f46e5'];
 
@@ -1093,6 +1276,298 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
             const el = document.getElementById('pipelineStatus');
             if (!el) return;
             el.textContent = `Status: ${message}`;
+        }
+
+        function updateTranslateButtonState() {
+            const translateBtn = document.getElementById('translateBtn');
+            if (!translateBtn) return;
+            if (state.translationInFlight) {
+                translateBtn.disabled = true;
+                translateBtn.textContent = 'Translating...';
+                return;
+            }
+            if (state.speakerRefinementInFlight) {
+                translateBtn.disabled = true;
+                translateBtn.textContent = 'Waiting for speakers...';
+                return;
+            }
+            translateBtn.disabled = false;
+            translateBtn.textContent = 'Translate';
+        }
+
+        function renderDemoCaptureUi() {
+            const btn = document.getElementById('demoCaptureBtn');
+            const note = document.getElementById('demoCaptureNote');
+            if (!btn || !note) return;
+
+            const active = Boolean(state.demoCaptureRecorder && state.demoCaptureRecorder.state !== 'inactive');
+            btn.textContent = active ? '⏹ Stop Demo Recording' : '🎬 Start Demo Recording';
+            btn.className = active ? 'btn btn-danger' : 'btn btn-secondary';
+
+            const noteParts = [];
+            if (active) {
+                note.classList.add('recording');
+                const startedAt = Number(state.demoCaptureStartedAt || 0);
+                if (startedAt) {
+                    const seconds = Math.max(0, Math.round((Date.now() - startedAt) / 1000));
+                    noteParts.push(`Recording ${formatTime(seconds)}`);
+                } else {
+                    noteParts.push('Recording in progress');
+                }
+                noteParts.push('screen captured');
+                noteParts.push(state.demoCaptureHasMicAudio ? 'mic captured' : 'mic unavailable');
+                note.textContent = noteParts.join(' · ');
+            } else {
+                note.classList.remove('recording');
+                note.textContent = 'Share this browser tab. Demo export will capture the page plus microphone audio.';
+            }
+        }
+
+        function pickSupportedRecorderMimeType() {
+            const candidates = [
+                'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
+                'video/mp4;codecs=h264,aac',
+                'video/webm;codecs=vp8,opus',
+                'video/webm;codecs=vp9,opus',
+                'video/webm'
+            ];
+            for (const candidate of candidates) {
+                if (window.MediaRecorder && typeof MediaRecorder.isTypeSupported === 'function' && MediaRecorder.isTypeSupported(candidate)) {
+                    return candidate;
+                }
+            }
+            return '';
+        }
+
+        function cleanupDemoCapture() {
+            if (state.demoCaptureUiInterval) {
+                clearInterval(state.demoCaptureUiInterval);
+                state.demoCaptureUiInterval = null;
+            }
+            if (state.demoCaptureStream) {
+                state.demoCaptureStream.getTracks().forEach((track) => {
+                    try { track.stop(); } catch (_) {}
+                });
+            }
+            if (state.demoCaptureMicStream) {
+                state.demoCaptureMicStream.getTracks().forEach((track) => {
+                    try { track.stop(); } catch (_) {}
+                });
+            }
+            if (state.demoCaptureAudioContext && state.demoCaptureAudioContext.state !== 'closed') {
+                state.demoCaptureAudioContext.close().catch(() => {});
+            }
+            state.demoCaptureRecorder = null;
+            state.demoCaptureChunks = [];
+            state.demoCaptureStream = null;
+            state.demoCaptureMicStream = null;
+            state.demoCaptureAudioContext = null;
+            state.demoCaptureAudioDestination = null;
+            state.demoCaptureStartedAt = null;
+            state.demoCaptureHasDisplayAudio = false;
+            state.demoCaptureHasMicAudio = false;
+            renderDemoCaptureUi();
+        }
+
+        async function startDemoCapture() {
+            if (!navigator.mediaDevices?.getDisplayMedia) {
+                throw new Error('Screen capture is not supported in this browser.');
+            }
+            if (!window.MediaRecorder) {
+                throw new Error('MediaRecorder is not supported in this browser.');
+            }
+
+            const displayStream = await navigator.mediaDevices.getDisplayMedia({
+                video: {
+                    frameRate: 30,
+                    displaySurface: 'browser'
+                },
+                audio: {
+                    suppressLocalAudioPlayback: false
+                },
+                preferCurrentTab: true,
+                selfBrowserSurface: 'include',
+                surfaceSwitching: 'include',
+                systemAudio: 'include'
+            });
+
+            let micStream = null;
+            try {
+                micStream = await navigator.mediaDevices.getUserMedia({
+                    audio: {
+                        channelCount: 1,
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true
+                    }
+                });
+            } catch (error) {
+                displayStream.getTracks().forEach((track) => {
+                    try { track.stop(); } catch (_) {}
+                });
+                throw new Error(`Microphone access failed: ${error.message}`);
+            }
+
+            const outputStream = new MediaStream();
+            displayStream.getVideoTracks().forEach((track) => outputStream.addTrack(track));
+
+            const displayAudioTracks = displayStream.getAudioTracks();
+            const micAudioTracks = micStream.getAudioTracks();
+            state.demoCaptureHasDisplayAudio = false;
+            state.demoCaptureHasMicAudio = micAudioTracks.length > 0;
+
+            if (micAudioTracks.length) {
+                const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+                if (AudioContextCtor) {
+                    const audioContext = new AudioContextCtor();
+                    if (audioContext.state === 'suspended') {
+                        await audioContext.resume();
+                    }
+                    const destination = audioContext.createMediaStreamDestination();
+                    state.demoCaptureAudioContext = audioContext;
+                    state.demoCaptureAudioDestination = destination;
+
+                    if (micAudioTracks.length) {
+                        const micAudioSource = audioContext.createMediaStreamSource(new MediaStream(micAudioTracks));
+                        const micGain = audioContext.createGain();
+                        micGain.gain.value = 1.15;
+                        micAudioSource.connect(micGain).connect(destination);
+                    }
+                    destination.stream.getAudioTracks().forEach((track) => outputStream.addTrack(track));
+                } else {
+                    micAudioTracks.forEach((track) => outputStream.addTrack(track));
+                }
+            }
+
+            const mimeType = pickSupportedRecorderMimeType();
+            const recorder = mimeType ? new MediaRecorder(outputStream, { mimeType }) : new MediaRecorder(outputStream);
+
+            state.demoCaptureChunks = [];
+            state.demoCaptureRecorder = recorder;
+            state.demoCaptureStream = displayStream;
+            state.demoCaptureMicStream = micStream;
+            state.demoCaptureStartedAt = Date.now();
+            state.demoCaptureUiInterval = window.setInterval(() => {
+                renderDemoCaptureUi();
+            }, 1000);
+            renderDemoCaptureUi();
+            setPipelineStatus('Demo recording started. Share this tab while microphone audio is being captured for the export.');
+
+            recorder.ondataavailable = (event) => {
+                if (event.data && event.data.size > 0) {
+                    state.demoCaptureChunks.push(event.data);
+                }
+            };
+
+            recorder.onstop = () => {
+                const chosenType = mimeType || 'video/webm';
+                const extension = chosenType.includes('mp4') ? 'mp4' : 'webm';
+                const blob = new Blob(state.demoCaptureChunks, {
+                    type: chosenType
+                });
+                if (blob.size > 0) {
+                    const stamp = new Date().toISOString().replaceAll(':', '-').replace(/\.\d+Z$/, 'Z');
+                    downloadBlob(blob, `meeting_demo_${stamp}.${extension}`);
+                    setPipelineStatus('Demo recording exported.');
+                } else {
+                    setPipelineStatus('Demo recording stopped, but no media data was captured.');
+                }
+                cleanupDemoCapture();
+            };
+
+            recorder.onerror = (event) => {
+                const message = event?.error?.message || 'unknown recorder error';
+                setPipelineStatus(`Demo recording failed: ${message}`);
+                cleanupDemoCapture();
+            };
+
+            const handleEnded = () => {
+                if (state.demoCaptureRecorder && state.demoCaptureRecorder.state !== 'inactive') {
+                    state.demoCaptureRecorder.stop();
+                }
+            };
+            displayStream.getVideoTracks().forEach((track) => track.addEventListener('ended', handleEnded, { once: true }));
+            recorder.start(1000);
+        }
+
+        async function stopDemoCapture() {
+            if (!state.demoCaptureRecorder || state.demoCaptureRecorder.state === 'inactive') {
+                cleanupDemoCapture();
+                return;
+            }
+            setPipelineStatus('Stopping demo recording and preparing the download...');
+            state.demoCaptureRecorder.stop();
+        }
+
+        function muteDemoCaptureMic() {
+            if (!state.demoCaptureMicStream) return false;
+            const tracks = state.demoCaptureMicStream.getAudioTracks();
+            if (!tracks.length) return false;
+            tracks.forEach((track) => {
+                track.enabled = false;
+            });
+            setPipelineStatus('Demo recording mic muted for silent UI walkthrough.');
+            return true;
+        }
+
+        async function toggleDemoCapture() {
+            try {
+                if (state.demoCaptureRecorder && state.demoCaptureRecorder.state !== 'inactive') {
+                    await stopDemoCapture();
+                } else {
+                    await startDemoCapture();
+                }
+            } catch (error) {
+                cleanupDemoCapture();
+                setPipelineStatus(`Demo recording unavailable: ${error.message}`);
+                alert(`Demo recording unavailable: ${error.message}`);
+            }
+        }
+
+        function setLiveDiagnosticsVisible(visible) {
+            const el = document.getElementById('liveDiagnostics');
+            if (!el) return;
+            el.classList.toggle('visible', Boolean(visible));
+        }
+
+        function formatPercent(value, scale = 0.05) {
+            const numeric = Number(value || 0);
+            return Math.max(0, Math.min(100, (numeric / scale) * 100));
+        }
+
+        function renderLiveDiagnostics(noteOverride = '') {
+            const container = document.getElementById('liveDiagnostics');
+            const meter = document.getElementById('liveMeterFill');
+            const note = document.getElementById('liveDiagnosticsNote');
+            const level = document.getElementById('liveLevelText');
+            const threshold = document.getElementById('liveThresholdText');
+            if (!container || !meter || !note || !level || !threshold) return;
+
+            const visible = ['recording', 'paused', 'stopping'].includes(state.mode) || state.liveMode;
+            setLiveDiagnosticsVisible(visible);
+            if (!visible) return;
+
+            const levelPct = formatPercent(state.liveInstantRms, 0.05);
+            const thresholdPct = formatPercent(state.liveAdaptiveVadThreshold || state.liveVadThreshold, 0.05);
+            meter.style.width = `${levelPct.toFixed(1)}%`;
+            level.textContent = `Level: ${levelPct.toFixed(0)}%`;
+            threshold.textContent = `Speech gate: ${thresholdPct.toFixed(0)}%`;
+
+            let message = noteOverride;
+            if (!message) {
+                if (state.mode === 'paused') {
+                    message = 'Recording paused. Microphone monitoring is suspended.';
+                } else if (state.mode === 'stopping') {
+                    message = 'Finalizing recording and refreshing meeting insights...';
+                } else if (!state.liveSignalSeen) {
+                    message = 'Listening for microphone input. Say a short sentence and confirm the level meter moves.';
+                } else if (state.lastLiveSignalAt && (Date.now() - state.lastLiveSignalAt) > 4000) {
+                    message = 'Microphone connected, but the input is very low. Move closer or increase system input gain.';
+                } else {
+                    message = 'Speech detected. Transcript updates after a short pause between phrases.';
+                }
+            }
+            note.textContent = message;
         }
 
         function getSourceLangPreference() {
@@ -1147,6 +1622,7 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
             document.getElementById('pauseBtn').style.display = 'none';
             document.getElementById('resumeBtn').style.display = 'none';
             refreshLiveControls();
+            renderLiveDiagnostics('Waiting for microphone access...');
         }
 
         function resetMeetingState() {
@@ -1163,7 +1639,9 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
             state.translationTargetLang = '';
             state.translationInFlight = false;
             state.translationRequestId = 0;
+            state.speakerRefinementInFlight = false;
             state.processingTime = null;
+            state.transcriptFocusKey = null;
             state.detectedLanguage = 'auto';
             state.languageVotes = {};
             state.liveMode = false;
@@ -1184,6 +1662,13 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
             state.liveBufferedSilenceMs = 0;
             state.liveFlushRequested = false;
             state.liveSocketReceivedFinal = false;
+            state.liveNoiseFloor = 0.0015;
+            state.liveAdaptiveVadThreshold = 0.0045;
+            state.liveInstantRms = 0;
+            state.livePeakRms = 0;
+            state.liveSignalSeen = false;
+            state.lastLiveSignalAt = 0;
+            state.lastLiveDiagnosticsPaintAt = 0;
             if (state.liveSocket) {
                 try { state.liveSocket.close(); } catch (_) {}
                 state.liveSocket = null;
@@ -1197,12 +1682,79 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
             if (label) label.textContent = 'Language: auto';
             const speakerCount = document.getElementById('speakerCount');
             if (speakerCount) speakerCount.textContent = '0 speakers';
-            const translateBtn = document.getElementById('translateBtn');
-            if (translateBtn) {
-                translateBtn.disabled = false;
-                translateBtn.textContent = 'Translate';
-            }
+            updateTranslateButtonState();
             resetRecordingUiState();
+        }
+
+        function formatFileSize(bytes) {
+            const value = Number(bytes || 0);
+            if (!value) return '0 B';
+            const units = ['B', 'KB', 'MB', 'GB'];
+            let size = value;
+            let idx = 0;
+            while (size >= 1024 && idx < units.length - 1) {
+                size /= 1024;
+                idx += 1;
+            }
+            return `${size.toFixed(size >= 10 || idx === 0 ? 0 : 1)} ${units[idx]}`;
+        }
+
+        function setUploadFileMeta(message) {
+            const el = document.getElementById('uploadFileMeta');
+            if (!el) return;
+            el.textContent = message;
+        }
+
+        function getServiceHealthMessage() {
+            const health = state.serviceHealth;
+            if (!health || !health.services) {
+                return {
+                    className: '',
+                    message: 'Checking backend services...'
+                };
+            }
+
+            const degraded = Object.entries(health.services || {})
+                .filter(([, ok]) => !ok)
+                .map(([name]) => name);
+
+            if (!degraded.length) {
+                return {
+                    className: 'healthy',
+                    message: 'All backend services are available. Full meeting analysis is enabled.'
+                };
+            }
+
+            return {
+                className: 'degraded',
+                message: `Degraded mode: ${degraded.join(', ')} unavailable. Transcript can still run, but some AI panels may fall back or return weaker results.`
+            };
+        }
+
+        function renderServiceStatus() {
+            const note = getServiceHealthMessage();
+            ['serviceStatusSelection', 'serviceStatusResults'].forEach((id) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.className = `service-status-note${note.className ? ` ${note.className}` : ''}`;
+                el.textContent = note.message;
+            });
+        }
+
+        async function checkBackendHealth() {
+            try {
+                state.serviceHealth = await fetchJsonOrThrow('/api/health', {}, 'Backend health');
+            } catch (_) {
+                state.serviceHealth = {
+                    status: 'degraded',
+                    services: {
+                        llm: false,
+                        asr: false,
+                        diarization: false,
+                    }
+                };
+            }
+            renderServiceStatus();
         }
 
         function updateMetrics() {
@@ -1253,6 +1805,8 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
             state.translationTargetLang = '';
             state.translationInFlight = false;
             state.translationRequestId = 0;
+            state.speakerRefinementInFlight = false;
+            state.transcriptFocusKey = null;
             const transcriptContent = document.getElementById('transcriptContent');
             const summaryContent = document.getElementById('summaryContent');
             const actionsContent = document.getElementById('actionsContent');
@@ -1268,11 +1822,7 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
             if (translationContent) translationContent.innerHTML = '<p style="color: var(--text-tertiary); font-size: 0.85rem;">Translate transcript to another language</p>';
             if (speakerCount) speakerCount.textContent = '0 speakers';
             if (detectedLang) detectedLang.textContent = `Language: ${state.detectedLanguage || 'auto'}`;
-            const translateBtn = document.getElementById('translateBtn');
-            if (translateBtn) {
-                translateBtn.disabled = false;
-                translateBtn.textContent = 'Translate';
-            }
+            updateTranslateButtonState();
             updateMetrics();
         }
 
@@ -1305,6 +1855,9 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
         }
 
         async function goBack() {
+            if (state.demoCaptureRecorder && state.demoCaptureRecorder.state !== 'inactive') {
+                await stopDemoCapture();
+            }
             if (state.mode === 'recording' || state.mode === 'paused') {
                 await stopRecording(false);
             }
@@ -1825,14 +2378,25 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
                     updateDetectedLanguage(preferredSourceLang);
                 }
                 setPipelineStatus('Live mode started: waiting for first speech chunk...');
+                renderLiveDiagnostics('Requesting microphone access...');
 
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    audio: {
+                        channelCount: 1,
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true
+                    }
+                });
                 const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
                 if (!AudioContextCtor) {
                     throw new Error('AudioContext is not supported in this browser');
                 }
 
                 const audioContext = new AudioContextCtor();
+                if (audioContext.state === 'suspended') {
+                    await audioContext.resume();
+                }
                 const sourceNode = audioContext.createMediaStreamSource(stream);
                 const processorNode = audioContext.createScriptProcessor(2048, 1, 1);
                 const muteNode = audioContext.createGain();
@@ -1853,8 +2417,16 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
                 state.liveBufferedSilenceMs = 0;
                 state.liveFlushRequested = false;
                 state.liveSocketReceivedFinal = false;
+                state.liveNoiseFloor = 0.0015;
+                state.liveAdaptiveVadThreshold = 0.0045;
+                state.liveInstantRms = 0;
+                state.livePeakRms = 0;
+                state.liveSignalSeen = false;
+                state.lastLiveSignalAt = 0;
+                state.lastLiveDiagnosticsPaintAt = 0;
                 state.chunkQueue = Promise.resolve();
                 state.mediaRecorder = { state: 'recording' };
+                renderLiveDiagnostics('Microphone connected. Speak normally and watch the input meter.');
 
                 processorNode.onaudioprocess = (event) => {
                     if (state.mode !== 'recording') return;
@@ -1863,7 +2435,24 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
                     state.liveArchiveBuffers.push(chunk);
                     const durationMs = (chunk.length / Number(state.liveSampleRate || 16000)) * 1000;
                     const rms = estimateRms(chunk);
-                    const hasSpeech = rms >= Number(state.liveVadThreshold || 0.012);
+                    state.liveInstantRms = rms;
+                    state.livePeakRms = Math.max(rms, Number(state.livePeakRms || 0) * 0.96);
+                    const nextNoiseFloor = rms < 0.02
+                        ? (Number(state.liveNoiseFloor || 0.0015) * 0.92) + (rms * 0.08)
+                        : Number(state.liveNoiseFloor || 0.0015);
+                    state.liveNoiseFloor = Math.max(0.0008, Math.min(nextNoiseFloor, 0.01));
+                    state.liveAdaptiveVadThreshold = Math.max(0.0035, Math.min(0.02, state.liveNoiseFloor * 3.2));
+                    if (rms >= 0.002) {
+                        state.liveSignalSeen = true;
+                        state.lastLiveSignalAt = Date.now();
+                    }
+                    const hasSpeech = rms >= Number(state.liveAdaptiveVadThreshold || state.liveVadThreshold || 0.0045)
+                        || (rms >= 0.0055 && state.liveBufferedSpeechMs > 0);
+
+                    if (!state.lastLiveDiagnosticsPaintAt || (Date.now() - state.lastLiveDiagnosticsPaintAt) >= 120) {
+                        state.lastLiveDiagnosticsPaintAt = Date.now();
+                        renderLiveDiagnostics();
+                    }
 
                     if (hasSpeech) {
                         state.liveChunkBuffers.push(chunk);
@@ -1911,6 +2500,7 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
                 document.getElementById('pauseBtn').style.display = 'inline-flex';
                 refreshLiveControls();
             } catch (err) {
+                renderLiveDiagnostics('Microphone start failed. Check browser permission and selected input device.');
                 alert('Microphone error: ' + err.message);
             }
         }
@@ -1951,6 +2541,7 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
                             setPipelineStatus(
                                 'Live capture was too sparse. Reprocessing the full recording with fast ASR...'
                             );
+                            renderLiveDiagnostics('Low-confidence live chunks detected. Reprocessing the full recording now.');
                             const transcript = await transcribeArchivedRecording(false, 'Recorded audio fast transcription');
                             if (transcript) {
                                 const sourceLang = getSourceLangPreference();
@@ -1959,14 +2550,22 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
                             }
                         }
                         if (!hasMeaningfulTranscript()) {
-                            setPipelineStatus('No clear speech captured. Please try again with a longer sample.');
+                            if (state.liveSignalSeen) {
+                                setPipelineStatus('No clear speech captured. Please try again with a longer sample.');
+                                renderLiveDiagnostics('The microphone had input, but the speech was too weak or too noisy to segment clearly.');
+                            } else {
+                                setPipelineStatus('No microphone signal detected. Check browser microphone permission, input device, and system input level.');
+                                renderLiveDiagnostics('No microphone signal detected. If the level meter stayed flat, the browser never received usable audio.');
+                            }
                         } else {
                             setPipelineStatus('Recording finalized. Generating meeting insights while refining speaker labels...');
+                            renderLiveDiagnostics('Speech captured successfully. Final transcript and speaker refinement are running.');
                             const analysisPromise = maybeRunLiveInsights(true);
                             const refinementPromise = (async () => {
                                 const archivedBlob = buildArchivedRecordingBlob();
                                 if (!archivedBlob) return null;
-                                const refinedTranscript = await requestSpeakerRefinement(
+                                setSpeakerRefinementInFlight(true);
+                                let refinedTranscript = await requestSpeakerRefinement(
                                     archivedBlob,
                                     getSourceLangPreference(),
                                     state.transcriptRaw.length ? state.transcriptRaw : (state.transcript || []),
@@ -1974,6 +2573,20 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
                                     `meeting_recording_${Date.now()}.wav`
                                 );
                                 if (!refinedTranscript) return null;
+                                if (!hasReasonableSpeakerSeparation(refinedTranscript?.segments || [])) {
+                                    const recovered = await recoverSpeakerAwareTranscript(
+                                        archivedBlob,
+                                        getSourceLangPreference(),
+                                        `meeting_recording_${Date.now()}.wav`
+                                    );
+                                    if (recovered?.transcriptSegments?.length) {
+                                        refinedTranscript = {
+                                            segments: recovered.transcriptSegments,
+                                            text: recovered.transcriptText,
+                                            language: recovered.detectedLanguage
+                                        };
+                                    }
+                                }
                                 const sourceLang = getSourceLangPreference();
                                 applyTranscriptResult(refinedTranscript, sourceLang !== 'auto' ? sourceLang : 'auto');
                                 return refinedTranscript;
@@ -1986,13 +2599,20 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
                                 .catch((err) => {
                                     console.warn(err);
                                     return null;
+                                })
+                                .finally(() => {
+                                    setSpeakerRefinementInFlight(false);
                                 });
                             await analysisPromise;
-                            await refinementPromise;
+                            const refinedTranscript = await refinementPromise;
+                            if (refinedTranscript?.segments?.length) {
+                                await rerunAnalysisAfterRefinement('Speaker refinement completed.');
+                            }
                         }
                     } catch (err) {
                         console.error(err);
                         setPipelineStatus(`Finalization warning: ${err.message}`);
+                        renderLiveDiagnostics(`Finalization warning: ${err.message}`);
                     }
                     if (state.startTime) {
                         state.processingTime = getElapsedRecordingMs() / 1000;
@@ -2015,6 +2635,7 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
             }
             if (!finalize) {
                 setPipelineStatus('Recording stopped.');
+                renderLiveDiagnostics('Recording stopped.');
             }
             resetRecordingUiState();
             refreshLiveControls();
@@ -2034,6 +2655,7 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
                 document.getElementById('pauseBtn').style.display = 'none';
                 document.getElementById('resumeBtn').style.display = 'inline-flex';
                 refreshLiveControls();
+                renderLiveDiagnostics('Recording paused. Resume to continue microphone capture.');
             }
         }
 
@@ -2054,6 +2676,7 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
                 document.getElementById('pauseBtn').style.display = 'inline-flex';
                 document.getElementById('resumeBtn').style.display = 'none';
                 refreshLiveControls();
+                renderLiveDiagnostics();
             }
         }
 
@@ -2120,6 +2743,87 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
             });
         }
 
+        function parseTimestampText(rawValue) {
+            const raw = String(rawValue || '').trim();
+            if (!raw) return null;
+            const parts = raw.split(':').map(part => Number(part));
+            if (parts.some(Number.isNaN)) return null;
+            if (parts.length === 2) {
+                return parts[0] * 60 + parts[1];
+            }
+            if (parts.length === 3) {
+                return parts[0] * 3600 + parts[1] * 60 + parts[2];
+            }
+            return null;
+        }
+
+        function parseTimeRange(rangeText) {
+            const raw = String(rangeText || '').trim();
+            if (!raw) return null;
+            if (raw.includes('-')) {
+                const [startText, endText] = raw.split('-', 2).map(part => part.trim());
+                const start = parseTimestampText(startText);
+                const end = parseTimestampText(endText);
+                if (start === null || end === null) return null;
+                return { start, end };
+            }
+            const timestamp = parseTimestampText(raw);
+            if (timestamp === null) return null;
+            return { start: timestamp, end: timestamp };
+        }
+
+        function focusTranscriptByEvidence({ timeRange = '', quote = '', speaker = '' } = {}) {
+            const sourceSegments = state.transcript || [];
+            if (!sourceSegments.length) return;
+
+            let target = null;
+            const normalizedQuote = String(quote || '').trim().toLowerCase();
+            const normalizedSpeaker = String(speaker || '').trim().toLowerCase();
+            const parsedRange = parseTimeRange(timeRange);
+
+            if (parsedRange) {
+                target = sourceSegments.find((seg) => (
+                    Number(seg.start || 0) <= parsedRange.end + 0.2 &&
+                    Number(seg.end || seg.start || 0) >= parsedRange.start - 0.2
+                ));
+            }
+
+            if (!target && normalizedQuote) {
+                target = sourceSegments.find((seg) => String(seg.text || '').toLowerCase().includes(normalizedQuote));
+            }
+
+            if (!target && normalizedSpeaker) {
+                target = sourceSegments.find((seg) => String(seg.speaker || '').toLowerCase() === normalizedSpeaker);
+            }
+
+            if (!target) return;
+
+            state.transcriptFocusKey = `${Number(target.start || 0)}-${Number(target.end || target.start || 0)}-${target.speaker}`;
+            setActiveTab('notes');
+            renderTranscript();
+
+            const element = document.querySelector(`[data-focus-key="${CSS.escape(state.transcriptFocusKey)}"]`);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+
+            window.setTimeout(() => {
+                if (state.transcriptFocusKey) {
+                    state.transcriptFocusKey = null;
+                    renderTranscript();
+                }
+            }, 2200);
+        }
+
+        function focusTranscriptFromEncoded(encodedPayload) {
+            try {
+                const payload = JSON.parse(decodeURIComponent(String(encodedPayload || '')));
+                focusTranscriptByEvidence(payload);
+            } catch (err) {
+                console.warn('Failed to decode transcript focus payload', err);
+            }
+        }
+
         function buildAudioTranscriptionFormData(fileOrBlob, sourceLang, enableDiarization = true, fallbackName = 'recording.wav') {
             const formData = new FormData();
             if (fileOrBlob instanceof Blob) {
@@ -2158,6 +2862,54 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
             }, label);
         }
 
+        function shouldRunTranslation(sourceLang, targetLang) {
+            const normalizedTarget = String(targetLang || '').trim().toLowerCase();
+            if (!normalizedTarget || normalizedTarget === 'auto') return false;
+            const normalizedSource = String(sourceLang || '').trim().toLowerCase();
+            if (!normalizedSource || normalizedSource === 'auto') return true;
+            return normalizedSource !== normalizedTarget;
+        }
+
+        function startTranslationRequest(targetLang, sourceText, options = {}) {
+            const preserveExisting = Boolean(options.preserveExisting);
+            const requestId = state.translationRequestId + 1;
+            state.translationRequestId = requestId;
+            if (!preserveExisting) {
+                state.translationSourceText = sourceText || buildTranscriptSourceText();
+            }
+            state.translationTargetLang = targetLang || state.translationTargetLang || '';
+            if (!preserveExisting) {
+                state.translationText = '';
+                state.translationSegments = [];
+            }
+            state.translationInFlight = true;
+            renderTranslation();
+            updateTranslateButtonState();
+            return requestId;
+        }
+
+        function finishTranslationRequest(requestId, translation = null) {
+            if (requestId !== state.translationRequestId) return false;
+            if (translation && translation.translated_text) {
+                state.translationSourceText = state.translationSourceText || translation.original_text || buildTranscriptSourceText();
+                state.translationText = translation.translated_text || '';
+                state.translationSegments = translation.translated_segments || [];
+                state.translationTargetLang = translation.target_lang || state.translationTargetLang || '';
+            }
+            state.translationInFlight = false;
+            renderTranslation();
+            updateTranslateButtonState();
+            return true;
+        }
+
+        function normalizePriorityLabel(priority) {
+            const normalized = String(priority || '').trim().toLowerCase();
+            if (normalized === 'high' || normalized === 'medium' || normalized === 'low') {
+                return normalized;
+            }
+            return 'medium';
+        }
+
         function applyTranscriptResult(transcript, fallbackLanguage = 'auto') {
             const transcriptSegments = transcript?.segments || [];
             const transcriptText = transcript?.text || transcriptSegments.map(seg => seg.text || '').join(' ').trim();
@@ -2178,9 +2930,50 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
             };
         }
 
+        function getDistinctSpeakerLabels(segments) {
+            return Array.from(new Set(
+                (segments || [])
+                    .map((seg) => String(seg?.speaker || '').trim())
+                    .filter(Boolean)
+            ));
+        }
+
+        function hasReasonableSpeakerSeparation(segments) {
+            const labels = getDistinctSpeakerLabels(segments);
+            if (labels.length < 2 || labels.length > 5) return false;
+            return (segments || []).length >= labels.length * 2;
+        }
+
+        async function recoverSpeakerAwareTranscript(fileOrBlob, sourceLang, fallbackName = 'recording.wav') {
+            try {
+                setPipelineStatus('Speaker refinement looks noisy. Re-running a full diarized transcription for a cleaner archive...');
+                const recovered = await requestAudioTranscription(
+                    fileOrBlob,
+                    sourceLang,
+                    true,
+                    'Recorded audio full diarized transcription',
+                    fallbackName
+                );
+                if (!hasReasonableSpeakerSeparation(recovered?.segments || [])) {
+                    return null;
+                }
+                return applyTranscriptResult(recovered, sourceLang !== 'auto' ? sourceLang : 'auto');
+            } catch (err) {
+                console.warn(err);
+                return null;
+            }
+        }
+
+        function setSpeakerRefinementInFlight(value) {
+            state.speakerRefinementInFlight = Boolean(value);
+            updateTranslateButtonState();
+            renderTranslation();
+        }
+
         function backgroundRefineTranscript(fileOrBlob, sourceLang, transcriptSegments, fallbackName = 'recording.wav') {
             return (async () => {
                 try {
+                    setSpeakerRefinementInFlight(true);
                     setPipelineStatus('Transcript is visible. Refining speaker labels in the background...');
                     const refined = await requestSpeakerRefinement(
                         fileOrBlob,
@@ -2196,8 +2989,26 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
                     console.warn(err);
                     setPipelineStatus('Transcript ready. Speaker refinement was skipped; analysis continues with the fast transcript.');
                     return null;
+                } finally {
+                    setSpeakerRefinementInFlight(false);
                 }
             })();
+        }
+
+        async function rerunAnalysisAfterRefinement(reason = 'Speaker refinement completed.') {
+            const transcriptSegments = state.transcriptRaw.length ? state.transcriptRaw : state.transcript;
+            const transcriptText = transcriptSegments.map(seg => seg.text || '').join(' ').trim();
+            if (!transcriptSegments.length || !transcriptText) return;
+
+            const targetLang = document.getElementById('targetLang')?.value || state.translationTargetLang || 'en';
+            setPipelineStatus(`${reason} Refreshing notes, tasks, pulse, and translation with updated speaker turns...`);
+            await runAnalysisModules(
+                transcriptText,
+                transcriptSegments,
+                state.detectedLanguage || getSourceLangPreference() || 'auto',
+                targetLang,
+                { preserveExistingTranslation: true }
+            );
         }
 
         function mergeSpeakerTurns(segments, sameSpeakerGap = 1.5) {
@@ -2271,7 +3082,7 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
             return mergeSpeakerTurns(segments);
         }
 
-        async function runAnalysisModules(transcriptText, transcriptSegments, language, targetLang) {
+        async function runAnalysisModules(transcriptText, transcriptSegments, language, targetLang, options = {}) {
             const effectiveText = (transcriptText || '').trim() || (transcriptSegments || []).map(s => s.text || '').join(' ').trim();
             const analysisPayload = JSON.stringify({
                 transcript: effectiveText,
@@ -2299,11 +3110,16 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
                     headers: { 'Content-Type': 'application/json' },
                     body: analysisPayload
                 }, 'Sentiment analysis')
-                    .then((sentiment) => updateResults({ sentiment }))
-                    .catch((err) => setCardMessage('sentimentContent', err.message, true)),
+                        .then((sentiment) => updateResults({ sentiment }))
+                        .catch((err) => setCardMessage('sentimentContent', err.message, true)),
             ];
 
-            if (targetLang && targetLang !== 'auto') {
+            if (shouldRunTranslation(language, targetLang)) {
+                const translationRequestId = startTranslationRequest(
+                    targetLang,
+                    buildTranscriptSourceText() || effectiveText,
+                    { preserveExisting: Boolean(options.preserveExistingTranslation) }
+                );
                 analysisTasks.push(
                     fetchJsonOrThrow('/api/translate/transcript', {
                         method: 'POST',
@@ -2314,9 +3130,22 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
                             target_lang: targetLang
                         })
                     }, 'Translation')
-                        .then((translation) => updateResults({ translation }))
-                        .catch((err) => setCardMessage('translationContent', err.message, true))
+                        .then((translation) => {
+                            if (translationRequestId !== state.translationRequestId) return;
+                            updateResults({ translation, translationRequestId });
+                        })
+                        .catch((err) => {
+                            if (translationRequestId !== state.translationRequestId) return;
+                            state.translationInFlight = false;
+                            renderTranslation();
+                            updateTranslateButtonState();
+                            setCardMessage('translationContent', err.message, true);
+                        })
                 );
+            } else {
+                state.translationInFlight = false;
+                renderTranslation();
+                updateTranslateButtonState();
             }
 
             await Promise.allSettled(analysisTasks);
@@ -2326,6 +3155,7 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
         function handleFileSelect(input) {
             if (input.files.length > 0) {
                 state.audioFile = input.files[0];
+                setUploadFileMeta(`${state.audioFile.name} · ${formatFileSize(state.audioFile.size)}`);
                 processAudio(state.audioFile);
             }
         }
@@ -2373,7 +3203,10 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
                 );
 
                 await analysisPromise;
-                await refinementPromise;
+                const refinedResult = await refinementPromise;
+                if (refinedResult?.transcriptSegments?.length) {
+                    await rerunAnalysisAfterRefinement('Speaker refinement completed.');
+                }
 
                 state.processingTime = (performance.now() - pipelineStart) / 1000;
                 updateMetrics();
@@ -2474,12 +3307,16 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
 
             // Translation (from full pipeline)
             if (data.translation && data.translation.translated_text) {
-                state.translationSourceText = state.translationSourceText || buildTranscriptSourceText() || data.translation.original_text || '';
-                state.translationText = data.translation.translated_text;
-                state.translationSegments = data.translation.translated_segments || [];
-                state.translationTargetLang = data.translation.target_lang || state.translationTargetLang || '';
-                state.translationInFlight = false;
-                renderTranslation();
+                if (
+                    typeof data.translationRequestId === 'number' &&
+                    data.translationRequestId !== state.translationRequestId
+                ) {
+                    return;
+                }
+                finishTranslationRequest(
+                    typeof data.translationRequestId === 'number' ? data.translationRequestId : state.translationRequestId,
+                    data.translation
+                );
             }
 
             updateMetrics();
@@ -2487,14 +3324,26 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
 
         function renderTranscript() {
             const container = document.getElementById('transcriptContent');
-            container.innerHTML = state.transcript.map((seg, idx) => {
+            if (!state.transcript.length) {
+                container.innerHTML = '<p style="color: var(--text-tertiary); font-size: 0.85rem;">Transcript will appear here once speech or text is available.</p>';
+                return;
+            }
+            const uniqueSpeakers = Array.from(new Set(state.transcript.map(seg => seg.speaker).filter(Boolean)));
+            const genericSpeakerCount = uniqueSpeakers.filter(name => /^speaker\s+\d+$/i.test(String(name || '').trim())).length;
+            const diarizationLooksNoisy = uniqueSpeakers.length >= 6 || (genericSpeakerCount >= 5 && uniqueSpeakers.length >= 5);
+            const warningHtml = diarizationLooksNoisy
+                ? '<div class="inline-warning">Speaker labels are diarization clusters and may be noisy for longer or overlapping conversations. Review the transcript before treating speaker count as exact.</div>'
+                : '';
+            container.innerHTML = warningHtml + state.transcript.map((seg, idx) => {
                 const speakerIdx = state.speakers.indexOf(seg.speaker);
                 if (speakerIdx === -1) {
                     state.speakers.push(seg.speaker);
                 }
                 const color = speakerColors[state.speakers.indexOf(seg.speaker) % speakerColors.length];
+                const focusKey = `${Number(seg.start || 0)}-${Number(seg.end || seg.start || 0)}-${seg.speaker}`;
+                const focusedClass = state.transcriptFocusKey === focusKey ? ' focused' : '';
                 return `
-                    <div class="transcript-item">
+                    <div class="transcript-item${focusedClass}" data-focus-key="${escapeHtml(focusKey)}">
                         <div class="transcript-meta">
                             <div class="speaker-avatar" style="background: ${color}">${seg.speaker.charAt(0)}</div>
                             <span class="speaker-name">${escapeHtml(seg.speaker)}</span>
@@ -2509,17 +3358,28 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
         function renderSummary() {
             const container = document.getElementById('summaryContent');
             const s = state.summary;
-            if (!s) return;
+            if (!s) {
+                container.innerHTML = '<p style="color: var(--text-tertiary); font-size: 0.85rem;">Summary insights will appear here.</p>';
+                return;
+            }
+            const keyTopics = Array.isArray(s.key_topics) ? s.key_topics : [];
+            const decisions = Array.isArray(s.decisions) ? s.decisions : [];
+            const blockers = Array.isArray(s.blockers) ? s.blockers : [];
+            const nextSteps = Array.isArray(s.next_steps) ? s.next_steps : [];
+            const fallbackNote = [s.overview, s.concise_summary]
+                .filter(Boolean)
+                .find(value => String(value).toLowerCase().includes('fallback'));
 
             container.innerHTML = `
                 <div class="summary-content">
-                    <h4>${escapeHtml(s.title)}</h4>
-                    <p>${escapeHtml(s.overview)}</p>
+                    <h4>${escapeHtml(s.title || 'Meeting Summary')}</h4>
+                    <p>${escapeHtml(s.overview || '')}</p>
                     ${s.concise_summary ? `<p style="margin-top:10px; color: var(--text-secondary);"><strong>Assistant Recap:</strong> ${escapeHtml(s.concise_summary)}</p>` : ''}
-                    ${s.key_topics.length ? `<p><strong>Key Topics:</strong></p><ul class="summary-list">${s.key_topics.map(t => `<li>${escapeHtml(t)}</li>`).join('')}</ul>` : ''}
-                    ${s.decisions.length ? `<p><strong>Decisions:</strong></p><ul class="summary-list">${s.decisions.map(d => `<li>${escapeHtml(d)}</li>`).join('')}</ul>` : ''}
-                    ${s.blockers && s.blockers.length ? `<p><strong>Risks / Blockers:</strong></p><ul class="summary-list">${s.blockers.map(b => `<li>${escapeHtml(b)}</li>`).join('')}</ul>` : ''}
-                    ${s.next_steps.length ? `<p><strong>Next Steps:</strong></p><ul class="summary-list">${s.next_steps.map(n => `<li>${escapeHtml(n)}</li>`).join('')}</ul>` : ''}
+                    ${keyTopics.length ? `<p><strong>Key Topics:</strong></p><ul class="summary-list">${keyTopics.map(t => `<li>${escapeHtml(t)}</li>`).join('')}</ul>` : ''}
+                    ${decisions.length ? `<p><strong>Decisions:</strong></p><ul class="summary-list">${decisions.map(d => `<li>${escapeHtml(d)}</li>`).join('')}</ul>` : ''}
+                    ${blockers.length ? `<p><strong>Risks / Blockers:</strong></p><ul class="summary-list">${blockers.map(b => `<li>${escapeHtml(b)}</li>`).join('')}</ul>` : ''}
+                    ${nextSteps.length ? `<p><strong>Next Steps:</strong></p><ul class="summary-list">${nextSteps.map(n => `<li>${escapeHtml(n)}</li>`).join('')}</ul>` : ''}
+                    ${fallbackNote ? `<div class="inline-warning">Summary is currently using fallback logic because the primary LLM response was unavailable or malformed.</div>` : ''}
                 </div>
             `;
         }
@@ -2527,29 +3387,41 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
         function renderActions() {
             const container = document.getElementById('actionsContent');
             const items = state.actionItems;
+            const exportBtn = document.getElementById('exportIcsBtn');
+            if (exportBtn) exportBtn.style.display = items.length ? 'inline-flex' : 'none';
             if (!items.length) {
                 container.innerHTML = '<p style="color: var(--text-tertiary);">No action items detected</p>';
                 return;
             }
 
-            container.innerHTML = items.map(item => `
+            container.innerHTML = items.map((item) => {
+                const priority = normalizePriorityLabel(item.priority);
+                const focusPayload = encodeURIComponent(JSON.stringify({
+                    timeRange: item.time_range || '',
+                    quote: item.source_text || '',
+                    speaker: item.speaker || item.assignee || ''
+                }));
+                return `
                 <div class="action-item">
                     <div class="action-task">
                         ${escapeHtml(item.task)}
-                        <span class="priority-tag priority-${escapeHtml(item.priority)}">${escapeHtml(item.priority)}</span>
+                        <span class="priority-tag priority-${priority}">${escapeHtml(priority)}</span>
                     </div>
                     <div class="action-meta">
                         👤 Owner: ${escapeHtml(item.assignee)} ${item.deadline ? `| 📅 ${escapeHtml(item.deadline)}` : ''}
                     </div>
-                    ${item.source_text ? `<div style="margin-top:8px; font-size:0.82rem; color: var(--text-secondary);"><strong>Evidence:</strong> ${escapeHtml(item.source_text)}</div>` : ''}
+                    ${item.source_text ? `<button class="evidence-link" onclick="focusTranscriptFromEncoded('${focusPayload}')"><strong>Evidence:</strong> ${escapeHtml(item.source_text)}</button>` : ''}
                 </div>
-            `).join('');
+            `}).join('');
         }
 
         function renderSentiment() {
             const container = document.getElementById('sentimentContent');
             const s = state.sentiment;
-            if (!s) return;
+            if (!s) {
+                container.innerHTML = '<p style="color: var(--text-tertiary); font-size: 0.85rem;">Team pulse insights will appear here.</p>';
+                return;
+            }
             const emotionalMoments = Array.isArray(s.emotional_moments) ? s.emotional_moments : [];
             const tensionPoints = Array.isArray(s.tension_points) ? s.tension_points : [];
             const agreements = Array.isArray(s.agreements) ? s.agreements : [];
@@ -2557,6 +3429,8 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
             const hesitations = Array.isArray(s.hesitation_signals) ? s.hesitation_signals : [];
             const speakerSignals = Array.isArray(s.speaker_signals) ? s.speaker_signals : [];
             const hasSignals = emotionalMoments.length || tensionPoints.length || agreements.length || disagreements.length || hesitations.length || speakerSignals.length;
+            const recommendations = Array.isArray(s.recommendations) ? s.recommendations : [];
+            const fallbackWarning = recommendations.find(rec => String(rec).toLowerCase().includes('fallback'));
 
             container.innerHTML = `
                 <div class="sentiment-overview">
@@ -2580,10 +3454,10 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
                         <div class="interaction-type" style="color: var(--primary-dark);">Emotionally Significant Moments</div>
                         <div style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">
                             ${emotionalMoments.map(m => `
-                                <div style="border:1px solid var(--border); border-radius: var(--radius); padding:10px; background: var(--bg-tertiary);">
+                                <button class="evidence-link" onclick="focusTranscriptFromEncoded('${encodeURIComponent(JSON.stringify({ timeRange: m.timestamp || '', quote: m.description || '', speaker: m.speaker || '' }))}')" style="border:1px solid var(--border); border-radius: var(--radius); padding:10px; background: var(--bg-tertiary); text-decoration:none;">
                                     <div style="font-size:0.78rem; color: var(--text-tertiary); margin-bottom:3px;">${escapeHtml(m.timestamp || '--:--')} · ${escapeHtml(m.speaker || 'Speaker')} · ${escapeHtml(m.sentiment || 'neutral')}</div>
                                     <div style="font-size:0.85rem; color: var(--text-secondary);">${escapeHtml(m.description || '')}</div>
-                                </div>
+                                </button>
                             `).join('')}
                         </div>
                     </div>
@@ -2591,25 +3465,37 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
                 ${agreements.length ? `
                     <div class="interaction-item">
                         <div class="interaction-type agreement">✓ Agreements</div>
-                        <div style="font-size: 0.85rem; color: var(--text-secondary);">${agreements.map(a => `${escapeHtml(a.speaker || 'Speaker')}: ${escapeHtml(a.evidence || a.statement || '')}`).join('<br>')}</div>
+                        <div style="display:flex; flex-direction:column; gap:8px; font-size: 0.85rem; color: var(--text-secondary);">${agreements.map(a => {
+                            const payload = encodeURIComponent(JSON.stringify({ quote: a.evidence || a.statement || '', speaker: a.speaker || '' }));
+                            return `<button class="evidence-link" onclick="focusTranscriptFromEncoded('${payload}')">${escapeHtml(a.speaker || 'Speaker')}: ${escapeHtml(a.evidence || a.statement || '')}</button>`;
+                        }).join('')}</div>
                     </div>
                 ` : ''}
                 ${disagreements.length ? `
                     <div class="interaction-item">
                         <div class="interaction-type disagreement">✗ Disagreements</div>
-                        <div style="font-size: 0.85rem; color: var(--text-secondary);">${disagreements.map(d => `${escapeHtml(d.speaker || 'Speaker')}: ${escapeHtml(d.evidence || d.statement || '')}`).join('<br>')}</div>
+                        <div style="display:flex; flex-direction:column; gap:8px; font-size: 0.85rem; color: var(--text-secondary);">${disagreements.map(d => {
+                            const payload = encodeURIComponent(JSON.stringify({ quote: d.evidence || d.statement || '', speaker: d.speaker || '' }));
+                            return `<button class="evidence-link" onclick="focusTranscriptFromEncoded('${payload}')">${escapeHtml(d.speaker || 'Speaker')}: ${escapeHtml(d.evidence || d.statement || '')}</button>`;
+                        }).join('')}</div>
                     </div>
                 ` : ''}
                 ${hesitations.length ? `
                     <div class="interaction-item">
                         <div class="interaction-type" style="background:#fff7ed; color:#9a3412;">~ Hesitation Signals</div>
-                        <div style="font-size: 0.85rem; color: var(--text-secondary);">${hesitations.map(h => `${escapeHtml(h.speaker || 'Speaker')}: ${escapeHtml(h.evidence || h.signal || '')}`).join('<br>')}</div>
+                        <div style="display:flex; flex-direction:column; gap:8px; font-size: 0.85rem; color: var(--text-secondary);">${hesitations.map(h => {
+                            const payload = encodeURIComponent(JSON.stringify({ quote: h.evidence || h.signal || '', speaker: h.speaker || '' }));
+                            return `<button class="evidence-link" onclick="focusTranscriptFromEncoded('${payload}')">${escapeHtml(h.speaker || 'Speaker')}: ${escapeHtml(h.evidence || h.signal || '')}</button>`;
+                        }).join('')}</div>
                     </div>
                 ` : ''}
                 ${tensionPoints.length ? `
                     <div class="interaction-item">
                         <div class="interaction-type disagreement">Tension Points</div>
-                        <div style="font-size: 0.85rem; color: var(--text-secondary);">${tensionPoints.map(t => `${escapeHtml((t.speakers || []).join(', '))}: ${escapeHtml(t.topic || '')}${t.evidence ? ` — ${escapeHtml(t.evidence)}` : ''}`).join('<br>')}</div>
+                        <div style="display:flex; flex-direction:column; gap:8px; font-size: 0.85rem; color: var(--text-secondary);">${tensionPoints.map(t => {
+                            const payload = encodeURIComponent(JSON.stringify({ quote: t.evidence || '', speaker: Array.isArray(t.speakers) ? (t.speakers[0] || '') : '' }));
+                            return `<button class="evidence-link" onclick="focusTranscriptFromEncoded('${payload}')">${escapeHtml((t.speakers || []).join(', '))}: ${escapeHtml(t.topic || '')}${t.evidence ? ` — ${escapeHtml(t.evidence)}` : ''}</button>`;
+                        }).join('')}</div>
                     </div>
                 ` : ''}
                 ${speakerSignals.length ? `
@@ -2633,12 +3519,13 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
                         <div style="font-size: 0.85rem; color: var(--text-secondary);">This usually means the conversation looked informational or the model did not find clear agreement, disagreement, hesitation, or tension cues.</div>
                     </div>
                 ` : ''}
-                ${s.recommendations && s.recommendations.length ? `
+                ${recommendations.length ? `
                     <div class="interaction-item">
                         <div class="interaction-type" style="color: var(--primary-dark);">→ Facilitator Suggestions</div>
-                        <div style="font-size: 0.85rem; color: var(--text-secondary);">${s.recommendations.map(r => escapeHtml(r)).join('<br>')}</div>
+                        <div style="font-size: 0.85rem; color: var(--text-secondary);">${recommendations.map(r => escapeHtml(r)).join('<br>')}</div>
                     </div>
                 ` : ''}
+                ${fallbackWarning ? `<div class="inline-warning">Team Pulse is currently using fallback analysis because the primary sentiment model response was unavailable.</div>` : ''}
             `;
         }
 
@@ -2647,11 +3534,12 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
             const sourceText = state.translationSourceText || buildTranscriptSourceText();
             const translatedText = state.translationText || '';
             const translatedSegments = Array.isArray(state.translationSegments) ? state.translationSegments : [];
+            const hasTranslatedContent = Boolean(translatedSegments.length || translatedText);
             const targetLabelMap = {
                 en: 'English',
-                zh: '中文',
-                ja: '日本語',
-                ko: '한국어',
+                zh: 'Chinese (zh)',
+                ja: 'Japanese (ja)',
+                ko: 'Korean (ko)',
                 es: 'Español'
             };
             const targetLang = state.translationTargetLang || document.getElementById('targetLang')?.value || '';
@@ -2671,26 +3559,55 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
                     <div style="border:1px solid var(--border); border-radius: var(--radius); padding:10px; background: var(--bg-primary);">
                         <div style="font-size:0.72rem; font-weight:700; color: var(--text-tertiary); margin-bottom:6px; text-transform:uppercase;">Translation · ${escapeHtml(targetLabel)}</div>
                         ${
-                            state.translationInFlight
+                            state.translationInFlight && !hasTranslatedContent
                                 ? `<div style="white-space: pre-wrap; font-size: 0.84rem; line-height: 1.55;">${escapeHtml(`Translating to ${targetLabel}...`)}</div>`
                                 : translatedSegments.length
-                                    ? `<div style="display:flex; flex-direction:column; gap:8px;">${translatedSegments.map(seg => `
+                                    ? `${state.translationInFlight ? `<div class="inline-warning" style="margin-bottom:8px;">Updating translation with the latest speaker-aware transcript...</div>` : ''}<div style="display:flex; flex-direction:column; gap:8px;">${translatedSegments.map(seg => `
                                         <div style="border-left:3px solid var(--primary); padding-left:8px;">
                                             <div style="font-size:0.78rem; color: var(--text-tertiary); margin-bottom:2px;">${escapeHtml(seg.speaker || 'Speaker')} · ${escapeHtml(formatTime(seg.start || 0))}</div>
                                             <div style="white-space: pre-wrap; font-size: 0.84rem; line-height: 1.55;">${escapeHtml(seg.text || '')}</div>
                                         </div>
                                     `).join('')}</div>`
-                                    : `<div style="white-space: pre-wrap; font-size: 0.84rem; line-height: 1.55;">${escapeHtml(translatedText || 'No translation yet')}</div>`
+                                    : `${state.translationInFlight ? `<div class="inline-warning" style="margin-bottom:8px;">Updating translation with the latest speaker-aware transcript...</div>` : ''}<div style="white-space: pre-wrap; font-size: 0.84rem; line-height: 1.55;">${escapeHtml(translatedText || 'No translation yet')}</div>`
                         }
                     </div>
                 </div>
             `;
+            updateTranslateButtonState();
         }
 
         // Export
         function exportTranscript() {
             const text = state.transcript.map(s => `[${formatTime(s.start)}] ${s.speaker}: ${s.text}`).join('\n');
             downloadFile(text, 'transcript.txt');
+        }
+
+        async function exportActionItemsToIcs() {
+            if (!Array.isArray(state.actionItems) || !state.actionItems.length) {
+                setPipelineStatus('No action items available for calendar export.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/export-action-items-ics', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(state.actionItems)
+                });
+                if (!response.ok) {
+                    throw new Error(`Calendar export failed (${response.status})`);
+                }
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'action-items.ics';
+                link.click();
+                URL.revokeObjectURL(url);
+                setPipelineStatus('Calendar export completed.');
+            } catch (err) {
+                setPipelineStatus(`Calendar export failed: ${err.message}`);
+            }
         }
 
         async function translateText() {
@@ -2708,19 +3625,26 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
                 return;
             }
 
-            setActiveTab('translation');
-            const requestId = Date.now();
-            state.translationRequestId = requestId;
-            state.translationSourceText = sourceText || fullText;
-            state.translationTargetLang = targetLang;
-            state.translationText = '';
-            state.translationSegments = [];
-            state.translationInFlight = true;
-            if (translateBtn) {
-                translateBtn.disabled = true;
-                translateBtn.textContent = 'Translating...';
+            if (state.speakerRefinementInFlight) {
+                setPipelineStatus('Speaker refinement is still running. Please wait until speaker labels settle before translating.');
+                updateTranslateButtonState();
+                return;
             }
-            renderTranslation();
+
+            if (!shouldRunTranslation(state.detectedLanguage || getSourceLangPreference() || 'auto', targetLang)) {
+                state.translationSourceText = sourceText || fullText;
+                state.translationText = sourceText || fullText;
+                state.translationSegments = sourceSegments.map(seg => ({ ...seg }));
+                state.translationTargetLang = targetLang;
+                state.translationInFlight = false;
+                renderTranslation();
+                await waitForUiPaint();
+                setPipelineStatus(`Translation skipped: transcript is already in ${targetLang}.`);
+                return;
+            }
+
+            setActiveTab('translation');
+            const requestId = startTranslationRequest(targetLang, sourceText || fullText);
             setPipelineStatus(`Translating transcript to ${targetLang}...`);
 
             try {
@@ -2734,24 +3658,17 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
                     })
                 }, 'Translation');
                 if (state.translationRequestId !== requestId) return;
-                state.translationSourceText = sourceText || data.original_text || fullText;
-                state.translationText = data.translated_text || '';
-                state.translationSegments = data.translated_segments || [];
-                state.translationTargetLang = data.target_lang || targetLang;
-                state.translationInFlight = false;
-                renderTranslation();
+                finishTranslationRequest(requestId, data);
+                await waitForUiPaint();
                 setPipelineStatus(`Translation completed: ${state.translationTargetLang}.`);
             } catch (err) {
                 if (state.translationRequestId !== requestId) return;
-                state.translationText = '';
-                state.translationSegments = [];
-                state.translationInFlight = false;
-                renderTranslation();
+                finishTranslationRequest(requestId, null);
+                await waitForUiPaint();
                 setPipelineStatus(`Translation failed: ${err.message}`);
             } finally {
-                if (state.translationRequestId === requestId && translateBtn) {
-                    translateBtn.disabled = false;
-                    translateBtn.textContent = 'Translate';
+                if (state.translationRequestId === requestId) {
+                    updateTranslateButtonState();
                 }
             }
         }
@@ -2774,18 +3691,58 @@ Alice: Agreed. Let's push the deadline to Friday."></textarea>
 
         function downloadFile(content, filename) {
             const blob = new Blob([content], { type: 'text/plain' });
+            downloadBlob(blob, filename);
+        }
+
+        function downloadBlob(blob, filename) {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
             a.download = filename;
             a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function initializeUploadInteractions() {
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+            if (!uploadArea || !fileInput) return;
+
+            ['dragenter', 'dragover'].forEach((eventName) => {
+                uploadArea.addEventListener(eventName, (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    uploadArea.classList.add('dragover');
+                });
+            });
+
+            ['dragleave', 'dragend', 'drop'].forEach((eventName) => {
+                uploadArea.addEventListener(eventName, (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    uploadArea.classList.remove('dragover');
+                });
+            });
+
+            uploadArea.addEventListener('drop', (event) => {
+                const files = event.dataTransfer?.files;
+                if (!files || !files.length) return;
+                state.audioFile = files[0];
+                setUploadFileMeta(`${state.audioFile.name} · ${formatFileSize(state.audioFile.size)}`);
+                processAudio(state.audioFile);
+            });
         }
 
         // Initial UI state
+        initializeUploadInteractions();
+        setUploadFileMeta('No file selected');
         setActiveTab('notes');
         resetRecordingUiState();
+        renderDemoCaptureUi();
         updateMetrics();
+        renderServiceStatus();
         setPipelineStatus('waiting for input');
+        void checkBackendHealth();
     </script>
 </body>
 </html>

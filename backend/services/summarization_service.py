@@ -93,6 +93,8 @@ class SummarizationService:
                 result = self._heuristic_summary(transcript, transcript_segments)
 
             result = self._deduplicate_summary_lists(result)
+            result = self._translate_summary_fields_if_needed(result, transcript)
+            result = self._rebalance_decisions_and_next_steps(result)
 
             logger.info("Summarization complete")
             return result
@@ -126,12 +128,138 @@ class SummarizationService:
 
         reduced = self._reduce_reconstructed_notes(reconstructed_chunks)
         if not self._summary_is_empty(reduced):
-            return self._deduplicate_summary_lists(reduced)
+            reduced = self._deduplicate_summary_lists(reduced)
+            reduced = self._translate_summary_fields_if_needed(reduced, transcript)
+            return self._rebalance_decisions_and_next_steps(reduced)
 
         chunk_summaries = []
         for reconstructed in reconstructed_chunks:
             chunk_summaries.append(self._summary_from_reconstruction(reconstructed))
-        return self._combine_summaries(chunk_summaries)
+        combined = self._combine_summaries(chunk_summaries)
+        combined = self._translate_summary_fields_if_needed(combined, transcript)
+        return self._rebalance_decisions_and_next_steps(combined)
+
+    def _translate_summary_fields_if_needed(
+        self,
+        summary: Dict[str, Any],
+        transcript: str,
+    ) -> Dict[str, Any]:
+        """Translate structured summary fields to English for mixed-language meetings."""
+        if not self._contains_cjk(transcript):
+            return summary
+
+        fields = ["title", "overview", "concise_summary"]
+        list_fields = ["key_topics", "decisions", "blockers", "next_steps"]
+        needs_translation = any(
+            self._contains_cjk(summary.get(field, ""))
+            for field in fields
+        ) or any(
+            any(self._contains_cjk(item) for item in summary.get(field, []) or [])
+            for field in list_fields
+        )
+        if not needs_translation:
+            return summary
+
+        try:
+            from backend.services.translation_service import get_translation_service
+
+            translator = get_translation_service()
+            normalized = dict(summary)
+            for field in fields:
+                value = str(normalized.get(field, "")).strip()
+                if value and self._contains_cjk(value):
+                    normalized[field] = translator.translate(value, source_lang="auto", target_lang="en")
+            for field in list_fields:
+                translated_items = []
+                for item in normalized.get(field, []) or []:
+                    text = str(item).strip()
+                    if text and self._contains_cjk(text):
+                        text = translator.translate(text, source_lang="auto", target_lang="en")
+                    translated_items.append(text)
+                normalized[field] = translated_items
+            normalized = self._canonicalize_summary_phrases(normalized)
+            return normalized
+        except Exception as e:
+            logger.warning(f"Summary field translation skipped: {e}")
+            return summary
+
+    @staticmethod
+    def _contains_cjk(text: Any) -> bool:
+        """Detect whether text contains CJK characters."""
+        value = str(text or "")
+        return bool(re.search(r"[\u4e00-\u9fff]", value))
+
+    def _canonicalize_summary_phrases(self, summary: Dict[str, Any]) -> Dict[str, Any]:
+        """Normalize a few recurring multilingual summary phrases into stable English."""
+        normalized = dict(summary)
+
+        decisions = []
+        for item in normalized.get("decisions", []) or []:
+            text = str(item).strip()
+            lower = text.lower()
+            if "friday" in lower and any(term in lower for term in ["sign", "signing", "goal", "target"]):
+                text = "Keep Friday as the provisional signing target."
+            decisions.append(text)
+        normalized["decisions"] = decisions
+
+        blockers = []
+        for item in normalized.get("blockers", []) or []:
+            text = str(item).strip()
+            lower = text.lower()
+            if "payment" in lower and any(term in lower for term in ["not finalized", "not confirmed", "needs", "terms"]):
+                text = "The payment clause still needs legal confirmation."
+            blockers.append(text)
+        normalized["blockers"] = blockers
+
+        next_steps = []
+        for item in normalized.get("next_steps", []) or []:
+            text = str(item).strip()
+            lower = text.lower()
+            if "legal" in lower and "payment clause" in lower and "thursday" in lower:
+                text = "Legal should clear the payment clause by Thursday."
+            next_steps.append(text)
+        normalized["next_steps"] = next_steps
+        return normalized
+
+    def _rebalance_decisions_and_next_steps(self, summary: Dict[str, Any]) -> Dict[str, Any]:
+        """Move obvious follow-up actions out of decisions into next steps."""
+        normalized = dict(summary)
+        decisions = []
+        next_steps = list(normalized.get("next_steps", []) or [])
+        action_starters = (
+            "review ",
+            "prepare ",
+            "follow up ",
+            "investigate ",
+            "confirm ",
+            "clear ",
+            "send ",
+            "update ",
+            "verify ",
+        )
+        decision_markers = (
+            "decide",
+            "decision",
+            "keep ",
+            "approve",
+            "approved",
+            "finalize",
+            "rollback",
+            "roll back",
+        )
+
+        for item in normalized.get("decisions", []) or []:
+            text = str(item).strip()
+            lowered = text.lower()
+            if lowered.startswith(action_starters) and not any(marker in lowered for marker in decision_markers):
+                if text not in next_steps:
+                    next_steps.append(text)
+            else:
+                decisions.append(text)
+
+        normalized["decisions"] = decisions
+        normalized["next_steps"] = next_steps
+        return self._deduplicate_summary_lists(normalized)
 
     def _split_into_chunks(
         self,

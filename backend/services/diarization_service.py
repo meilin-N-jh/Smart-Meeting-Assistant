@@ -8,6 +8,14 @@ from loguru import logger
 from backend.core.config import settings
 
 
+def _resolve_torch_device(device_name: str):
+    import torch
+
+    if not torch.cuda.is_available():
+        return torch.device("cpu")
+    return torch.device(device_name or "cuda")
+
+
 class DiarizationService:
     """Speaker diarization service using pyannote.audio or whisperx.
 
@@ -71,8 +79,7 @@ class DiarizationService:
                     else:
                         pipeline = Pipeline.from_pretrained(self.model_name)
                         
-                    import torch
-                    diarization_device = torch.device(settings.asr_device if torch.cuda.is_available() else "cpu")
+                    diarization_device = _resolve_torch_device(settings.diarization_device)
                     if pipeline is not None:
                         pipeline.to(diarization_device)
 
@@ -121,8 +128,7 @@ class DiarizationService:
 
             if backend == "whisperx":
                 whisperx = self.model["module"]
-                import torch
-                dev_str = settings.asr_device if torch.cuda.is_available() and settings.asr_device == "cuda" else "cpu"
+                dev_str = str(_resolve_torch_device(settings.diarization_device))
                 diarize_pipeline = whisperx.DiarizationPipeline(
                     use_auth_token=self.hf_token,
                     device=dev_str,

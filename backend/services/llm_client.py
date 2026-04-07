@@ -194,9 +194,11 @@ class LLMClient:
             for m in re.finditer(r"```(?:json)?\s*([\s\S]*?)\s*```", text, flags=re.IGNORECASE)
         )
 
-        # 3) Any balanced JSON object/array chunks in output
-        candidates.extend(self._extract_balanced_chunks(text, "{", "}"))
-        candidates.extend(self._extract_balanced_chunks(text, "[", "]"))
+        # 3) Any balanced JSON object chunks in output
+        object_candidates = self._extract_balanced_chunks(text, "{", "}")
+        array_candidates = self._extract_balanced_chunks(text, "[", "]")
+        candidates.extend(object_candidates)
+        candidates.extend(array_candidates)
 
         # Prefer later chunks (models often append final JSON near the end)
         seen = set()
@@ -206,7 +208,10 @@ class LLMClient:
                 seen.add(c)
                 ordered_candidates.append(c)
 
-        for candidate in ordered_candidates:
+        object_like = [c for c in ordered_candidates if c.lstrip().startswith("{")]
+        array_like = [c for c in ordered_candidates if c.lstrip().startswith("[")]
+
+        for candidate in object_like + array_like:
             parsed = self._try_json_load(candidate)
             if parsed is None:
                 continue
@@ -309,6 +314,16 @@ class LLMClient:
             return True
         except Exception as e:
             logger.warning(f"Failed to auto-switch model: {e}")
+            return False
+
+    def is_available(self) -> bool:
+        """Return whether the configured vLLM endpoint is reachable."""
+        try:
+            models = self.client.models.list()
+            data = getattr(models, "data", []) or []
+            return bool(data)
+        except Exception as e:
+            logger.warning(f"LLM availability check failed: {e}")
             return False
 
     def chat_with_prompt_template(

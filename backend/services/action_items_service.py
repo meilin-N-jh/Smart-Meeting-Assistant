@@ -194,11 +194,14 @@ class ActionItemsService:
             priority = "medium"
 
         source_text = str(item.get("source_text", "")).strip()
+        source_text = re.sub(r"^[A-Za-z0-9 _-]+:\s*", "", source_text)
         task = str(item.get("task") or item.get("description") or "").strip()
         assignee = str(item.get("assignee", "unknown")).strip() or "unknown"
 
         deadline_raw = item.get("deadline")
         deadline = str(deadline_raw).strip() if deadline_raw not in (None, "") else None
+        if deadline:
+            deadline = re.sub(r"^(by|before)\s+", "", deadline, flags=re.IGNORECASE).strip()
         speaker = str(item.get("speaker", "")).strip() or None
         time_range = str(item.get("time_range", "")).strip() or None
 
@@ -243,7 +246,7 @@ class ActionItemsService:
 
             assignee = str(current.get("assignee", "unknown")).strip().lower()
             if assignee in {"", "unknown", "none", "n/a"}:
-                if matched_seg:
+                if matched_seg and self._should_backfill_assignee_from_speaker(current):
                     seg_speaker = str(self._seg_value(matched_seg, "speaker", "")).strip()
                     current["assignee"] = seg_speaker or "unknown"
                 else:
@@ -271,6 +274,48 @@ class ActionItemsService:
             enriched.append(current)
 
         return enriched
+
+    def _should_backfill_assignee_from_speaker(self, item: Dict[str, Any]) -> bool:
+        """Only use the segment speaker as assignee for self-commitment language.
+
+        This avoids converting anonymous or externally assigned tasks such as
+        "Someone should follow up..." into the current speaker name.
+        """
+        evidence = " ".join(
+            str(part or "").strip()
+            for part in [item.get("task", ""), item.get("source_text", "")]
+        ).lower()
+
+        if not evidence:
+            return False
+
+        self_commitment_markers = [
+            "i will",
+            "i'll",
+            "i can",
+            "i can take",
+            "i can do",
+            "i'll handle",
+            "i will handle",
+            "i will update",
+            "i will confirm",
+            "i will send",
+            "we will",
+            "we'll",
+        ]
+        anonymous_markers = [
+            "someone should",
+            "someone needs to",
+            "we should",
+            "needs to be",
+            "should be done",
+            "please ",
+        ]
+
+        if any(marker in evidence for marker in anonymous_markers):
+            return False
+
+        return any(marker in evidence for marker in self_commitment_markers)
 
     def _find_best_source_segment(
         self,

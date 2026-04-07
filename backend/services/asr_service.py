@@ -51,9 +51,19 @@ class ASRService:
         if self._model is None:
             try:
                 from faster_whisper import WhisperModel
+                device = self.device
+                device_index = 0
+                if isinstance(device, str) and device.startswith("cuda:"):
+                    _, _, index_str = device.partition(":")
+                    try:
+                        device_index = int(index_str)
+                    except ValueError:
+                        device_index = 0
+                    device = "cuda"
                 self._model = WhisperModel(
                     self.model_name,
-                    device=self.device,
+                    device=device,
+                    device_index=device_index if device == "cuda" else 0,
                     compute_type=self.compute_type,
                 )
                 logger.info(f"Whisper model loaded: {self.model_name}")

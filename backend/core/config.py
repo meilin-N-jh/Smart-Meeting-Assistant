@@ -77,6 +77,7 @@ class Settings(BaseSettings):
     asr_model: str = Field(default="medium", description="Whisper model size")
     asr_device: str = Field(default="cuda", description="ASR device")
     asr_compute_type: str = Field(default="float16", description="ASR compute type")
+    diarization_device: str = Field(default="cuda", description="Speaker diarization device")
 
     # Speaker Diarization
     diarization_model: str = Field(

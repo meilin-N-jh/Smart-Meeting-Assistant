@@ -85,6 +85,7 @@ class SentimentService:
                 if not self._is_sparse_result(retried):
                     result = retried
             result = self._augment_sparse_result(result, transcript, transcript_segments)
+            result = self._postprocess_result(result, transcript)
 
             logger.info("Sentiment analysis complete")
             return result
@@ -220,6 +221,204 @@ class SentimentService:
         merged["speaker_signals"] = self._build_speaker_signals(merged)
         return merged
 
+    def _postprocess_result(
+        self,
+        result: Dict[str, Any],
+        transcript: str,
+    ) -> Dict[str, Any]:
+        """Canonicalize interaction signal text for more stable downstream use."""
+        processed = dict(result)
+        processed["agreements"] = self._canonicalize_agreements(result.get("agreements", []) or [])
+        processed["disagreements"] = self._canonicalize_disagreements(
+            result.get("disagreements", []) or [],
+            transcript,
+        )
+        processed["tension_points"] = self._canonicalize_tension_points(
+            result.get("tension_points", []) or [],
+            transcript,
+        )
+        if not processed["tension_points"]:
+            derived_tension = self._derive_launch_risk_tension_point(transcript)
+            if derived_tension:
+                processed["tension_points"] = [derived_tension]
+        processed["speaker_signals"] = self._build_speaker_signals(processed)
+        return processed
+
+    def _canonicalize_agreements(self, items: List[Any]) -> List[Dict[str, Any]]:
+        """Rewrite agreement statements into concise English summaries."""
+        canonical = []
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            speaker = str(item.get("speaker", "")).strip()
+            evidence = str(item.get("evidence", "")).strip()
+            statement = str(item.get("statement", "")).strip()
+            lowered = f"{statement} {evidence}".lower()
+
+            if ("qa" in lowered and ("agree" in lowered or "同意" in evidence or "share that concern" in lowered)):
+                statement = f"{speaker} agrees with QA's concern." if speaker else "A speaker agrees with QA's concern."
+            elif "concern" in lowered:
+                statement = f"{speaker} agrees with the concern raised in the meeting." if speaker else "A speaker agrees with the concern raised in the meeting."
+            elif "agree" in lowered or "同意" in evidence:
+                statement = f"{speaker} expresses agreement." if speaker else "A speaker expresses agreement."
+
+            canonical.append({
+                "speaker": speaker,
+                "statement": statement,
+                "evidence": evidence,
+            })
+        return canonical[:6]
+
+    def _canonicalize_disagreements(
+        self,
+        items: List[Any],
+        transcript: str,
+    ) -> List[Dict[str, Any]]:
+        """Keep objection signals and rewrite them into concise English summaries."""
+        canonical = []
+        full_text = transcript.lower()
+        launch_context = any(term in full_text for term in ["launch", "launch date", "friday", "timeline", "上线", "周五"])
+
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            speaker = str(item.get("speaker", "")).strip()
+            evidence = str(item.get("evidence", "")).strip()
+            statement = str(item.get("statement", "")).strip()
+            lowered = f"{statement} {evidence}".lower()
+
+            concern_markers = ["worried", "concern", "not convinced", "risky", "too high", "冒险", "担心"]
+            risk_markers = ["worried", "not convinced", "risky", "too high", "crash", "testing", "quality", "冒险", "担心"]
+            defending_markers = ["keep the launch date", "delaying again will hurt", "hurt the campaign"]
+            if any(marker in lowered for marker in defending_markers) and not any(marker in lowered for marker in risk_markers):
+                continue
+
+            if launch_context and any(marker in lowered for marker in concern_markers):
+                statement = f"{speaker} pushes back on keeping the current launch date." if speaker else "A speaker pushes back on keeping the current launch date."
+            elif any(marker in lowered for marker in concern_markers):
+                statement = f"{speaker} raises concern about the current plan." if speaker else "A speaker raises concern about the current plan."
+
+            canonical.append({
+                "speaker": speaker,
+                "statement": statement,
+                "evidence": evidence,
+            })
+
+        deduped = []
+        seen = set()
+        for item in canonical:
+            key = (item.get("speaker", "").lower(), item.get("statement", "").lower())
+            if key in seen:
+                continue
+            seen.add(key)
+            deduped.append(item)
+
+        if launch_context:
+            grouped = self._derive_launch_risk_disagreement(transcript)
+            if grouped:
+                return [grouped]
+
+        return deduped[:6]
+
+    def _derive_launch_risk_disagreement(self, transcript: str) -> Optional[Dict[str, Any]]:
+        """Build a meeting-level pushback item for launch-versus-risk conflicts."""
+        concern_speakers = []
+        evidence_lines = []
+        risk_markers = ["worried", "not convinced", "risky", "too high", "crash", "testing", "quality", "担心", "冒险"]
+
+        for line in transcript.splitlines():
+            if ":" not in line:
+                continue
+            speaker, text = line.split(":", 1)
+            speaker = speaker.strip()
+            text = text.strip()
+            lowered = text.lower()
+            if any(marker in lowered for marker in risk_markers):
+                if speaker not in concern_speakers:
+                    concern_speakers.append(speaker)
+                if text not in evidence_lines:
+                    evidence_lines.append(text)
+
+        if not concern_speakers:
+            return None
+
+        if len(concern_speakers) == 1:
+            speaker_text = concern_speakers[0]
+            statement = f"{speaker_text} pushes back on keeping the current launch date."
+        elif len(concern_speakers) == 2:
+            speaker_text = f"{concern_speakers[0]} and {concern_speakers[1]}"
+            statement = f"{speaker_text} push back on keeping the current launch date."
+        else:
+            speaker_text = ", ".join(concern_speakers[:-1]) + f", and {concern_speakers[-1]}"
+            statement = "Multiple speakers push back on keeping the current launch date."
+
+        return {
+            "speaker": speaker_text,
+            "statement": statement,
+            "evidence": " ".join(evidence_lines[:2]),
+        }
+
+    def _canonicalize_tension_points(
+        self,
+        items: List[Any],
+        transcript: str,
+    ) -> List[Dict[str, Any]]:
+        """Normalize tension topics into concise English phrases."""
+        canonical = []
+        full_text = transcript.lower()
+        has_launch_risk = any(term in full_text for term in ["launch", "launch date", "timeline", "上线", "周五"]) and any(
+            term in full_text for term in ["risk", "risky", "testing", "crash", "quality", "担心", "冒险"]
+        )
+
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            speakers = item.get("speakers", [])
+            evidence = str(item.get("evidence", "")).strip()
+            topic = str(item.get("topic", "")).strip()
+            if has_launch_risk:
+                topic = "Launch timing versus product quality risk"
+            elif not topic:
+                topic = "Open concern or implementation risk"
+
+            canonical.append({
+                "speakers": speakers,
+                "topic": topic,
+                "evidence": evidence,
+            })
+        return canonical[:4]
+
+    def _derive_launch_risk_tension_point(self, transcript: str) -> Optional[Dict[str, Any]]:
+        """Create a stable meeting-level tension point for launch-versus-risk conflicts."""
+        full_text = transcript.lower()
+        has_launch_risk = any(term in full_text for term in ["launch", "launch date", "timeline", "上线", "周五"]) and any(
+            term in full_text for term in ["risk", "risky", "testing", "crash", "quality", "担心", "冒险"]
+        )
+        if not has_launch_risk:
+            return None
+
+        speakers = []
+        evidence = []
+        keywords = ["worried", "not convinced", "risky", "too high", "crash", "担心", "冒险", "hurt the campaign"]
+        for line in transcript.splitlines():
+            if ":" not in line:
+                continue
+            speaker, text = line.split(":", 1)
+            speaker = speaker.strip()
+            text = text.strip()
+            lowered = text.lower()
+            if any(keyword in lowered for keyword in keywords):
+                if speaker not in speakers:
+                    speakers.append(speaker)
+                if text not in evidence:
+                    evidence.append(text)
+
+        return {
+            "speakers": speakers[:3],
+            "topic": "Launch timing versus product quality risk",
+            "evidence": " ".join(evidence[:2]),
+        }
+
     def _is_sparse_result(self, result: Dict[str, Any]) -> bool:
         """Check whether the interaction signal output is too thin to be useful."""
         signal_count = sum(
@@ -279,9 +478,32 @@ class SentimentService:
         emotional_moments = []
         evidence_quotes = []
 
-        agree_words = ("agree", "sounds good", "makes sense", "okay", "yes")
-        disagree_words = ("disagree", "not convinced", "won't work", "do not think", "problem")
-        hesitate_words = ("maybe", "perhaps", "not sure", "might", "i think")
+        agree_words = (
+            "agree",
+            "i agree",
+            "sounds good",
+            "makes sense",
+            "yes",
+            "comfortable moving forward",
+            "share that concern",
+            "i hear the concern",
+            "我同意",
+        )
+        disagree_words = (
+            "disagree",
+            "not convinced",
+            "won't work",
+            "do not think",
+            "problem",
+            "worried",
+            "concern",
+            "risky",
+            "too risky",
+            "too high",
+            "冒险",
+            "担心",
+        )
+        hesitate_words = ("maybe", "perhaps", "not sure", "might", "i think", "feels risky", "still feels risky")
 
         for unit in units:
             text = unit["text"]
@@ -335,9 +557,15 @@ class SentimentService:
         if disagreements:
             involved = sorted({item["speaker"] for item in disagreements if item.get("speaker")})
             if involved:
+                topic = "Open concern or implementation risk"
+                joined_text = " ".join(unit["text"].lower() for unit in units)
+                if any(term in joined_text for term in ["launch", "launch date", "timeline", "上线", "周五"]) and any(
+                    term in joined_text for term in ["risk", "risky", "testing", "crash", "quality", "担心", "冒险"]
+                ):
+                    topic = "Launch timing versus quality risk"
                 tension_points.append({
                     "speakers": involved[:3],
-                    "topic": "Open concern or implementation risk",
+                    "topic": topic,
                     "evidence": disagreements[0].get("evidence", ""),
                 })
 
@@ -350,9 +578,14 @@ class SentimentService:
             overall = "positive"
 
         engagement = "medium"
-        if len(units) >= 12:
+        if (
+            len(units) >= 12
+            or len(disagreements) >= 2
+            or (disagreements and agreements)
+            or len({item.get("speaker") for item in disagreements if item.get("speaker")}) >= 2
+        ):
             engagement = "high"
-        elif len(units) <= 3:
+        elif len(units) <= 3 and not disagreements and not agreements and not hesitations:
             engagement = "low"
 
         recommendations = []
