@@ -1,374 +1,223 @@
 # Smart Meeting Assistant
 
-An AI-powered meeting assistant for real-time and offline meeting support. The system provides speech-to-text transcription, speaker attribution, meeting summarization, action item extraction, translation, and meeting sentiment analysis through a local `Qwen2.5-7B FP16` model served by vLLM.
+A course-quality smart meeting assistant for real-time and offline meeting support. The system provides:
+
+- speech-to-text transcription
+- speaker attribution and refinement
+- structured meeting summarization
+- action item extraction
+- multilingual transcript translation
+- meeting sentiment and engagement analysis
+
+The final stack uses a local `Qwen2.5-7B FP16` model served by vLLM, plus `faster-whisper` and `pyannote` for audio processing.
+
+## Highlights
+
+### Two-stage transcript pipeline
+
+The system does not wait for the full meeting pipeline before showing text.
+
+1. Fast ASR produces an initial transcript as early as possible.
+2. Speaker refinement runs in the background.
+3. Summary, action items, sentiment, and translation are refreshed from the refined transcript.
+
+This makes the UI responsive while still preserving structured final outputs.
+
+### Structured downstream tasks
+
+The project is not prompt-only. It combines:
+
+- task-specific prompts
+- shared transcript schemas
+- JSON extraction and repair
+- post-processing and normalization
+- light heuristic fallbacks where needed
+
+This is important because the project depends on stable UI-facing structures rather than raw free-form model text.
 
 ## Features
 
-### 1. Real-time Speech-to-Text Transcription
-- Capture live microphone input
-- Support for uploaded audio files (WAV, MP3, M4A)
-- Timestamped transcript output
-- Speaker diarization and labeling
-- Multiple speaker identification
+### 1. Transcription
 
-### 2. Automatic Meeting Summarization
-- Key topics extraction
-- Decisions identification
-- Blockers detection
-- Next steps extraction
-- Concise summary generation
+- live microphone recording
+- uploaded audio files
+- timestamped transcript segments
+- background speaker refinement
+- transcript evidence linking in the UI
 
-### 3. Machine Translation
-- Translate transcript and summary
-- Preserve timestamps and speaker labels
-- Support for English, Chinese, Japanese
-- Extensible to other languages
+### 2. Summarization
 
-### 4. Context-Aware Action Item Extraction
-- Detect commitments and tasks
-- Extract assignee, task, deadline, priority
-- Handle ambiguous assignee with "unknown"
-- Confidence scoring
+- overview
+- concise summary
+- key topics
+- decisions
+- blockers
+- next steps
 
-### 5. Meeting Sentiment and Engagement Analysis
-- Overall sentiment detection
-- Engagement level assessment
-- Agreement/disagreement detection
-- Tension point identification
-- Evidence quotes extraction
+### 3. Action Items
 
-## Technology Stack
+- assignee extraction
+- task extraction
+- deadline extraction
+- confidence scoring
+- source-text grounding
 
-### Backend
-- **FastAPI**: Modern Python web framework
-- **vLLM**: Local LLM inference engine
-- **Qwen2.5-7B FP16**: Local language model for summary, action items, translation, and sentiment analysis
-- **faster-whisper**: Speech-to-text
-- **whisperx**: Speaker diarization
+### 4. Sentiment and Engagement
 
-### Frontend
-- HTML/CSS/JavaScript (vanilla)
-- Real-time microphone recording
-- File upload support
+- overall sentiment
+- engagement level
+- agreement signals
+- disagreement signals
+- tension points
+- emotionally significant moments
 
-## Project Structure
+### 5. Translation
 
-```
+- transcript translation
+- speaker and timestamp preservation
+- structure-aware output formatting
 
 ## Architecture
 
-The system is organized as a two-stage meeting pipeline:
-
-1. Fast transcript path
-   - microphone or file audio is transcribed first with `faster-whisper`
-   - transcript text is shown to the frontend as early as possible
-2. Background refinement path
-   - speaker refinement runs after the fast transcript is available
-   - summary, action items, and sentiment analysis are sent to vLLM in parallel
-
 High-level flow:
 
-`Audio Input -> Fast ASR -> Frontend Transcript -> Parallel LLM Analysis + Speaker Refinement -> Final Meeting View`
+`Audio/Text Input -> Transcript Construction -> Speaker Refinement -> Parallel NLP Tasks -> Frontend Rendering`
 
-## Real-Time Workflow
+Main backend modules:
 
-For live recording, the frontend uses endpoint-style chunking instead of waiting for the whole recording:
+- `backend/api/routes.py`
+- `backend/services/meeting_pipeline.py`
+- `backend/services/asr_service.py`
+- `backend/services/diarization_service.py`
+- `backend/services/summarization_service.py`
+- `backend/services/action_items_service.py`
+- `backend/services/sentiment_service.py`
+- `backend/services/translation_service.py`
+- `backend/services/llm_client.py`
+- `backend/services/prompt_service.py`
 
-- speech is buffered while the user is talking
-- a short silence triggers a fast transcription flush
-- the transcript is appended immediately
-- the same chunk is refined in the background for speaker labels
-- once the recording stops, the full meeting view is finalized from the accumulated transcript
+Frontend:
 
-This design improves perceived latency while still allowing speaker labels and downstream analysis to catch up.
-CS6493/
-├── backend/
-│   ├── api/
-│   │   ├── __init__.py
-│   │   └── routes.py          # API endpoints
-│   ├── core/
-│   │   ├── __init__.py
-│   │   └── config.py          # Configuration
-│   ├── models/
-│   │   ├── __init__.py
-│   │   └── schemas.py         # Pydantic models
-│   ├── services/
-│   │   ├── __init__.py
-│   │   ├── llm_client.py      # LLM client
-│   │   ├── asr_service.py    # Speech-to-text
-│   │   ├── diarization_service.py
-│   │   ├── translation_service.py
-│   │   ├── summarization_service.py
-│   │   ├── action_items_service.py
-│   │   ├── sentiment_service.py
-│   │   └── prompt_service.py
-│   └── main.py                # FastAPI app
-├── frontend/
-│   └── index.html             # Demo frontend
-├── tests/
-│   ├── __init__.py
-│   ├── test_services.py
-│   └── test_api.py
-├── sample_data/
-│   ├── sample_meeting_transcript.txt
-│   ├── sample_meeting_zh.txt
-│   └── sample_meeting_output.json
-├── config/
-├── prompts/
-├── requirements.txt
-├── .env.example
-└── README.md
+- `frontend/index.html`
+
+## Benchmark and Evaluation
+
+The repository includes a compact course-style benchmark:
+
+- `datasets/smart_meeting_benchmark_v1/`
+
+Task files:
+
+- `dataset_summarization.json`
+- `dataset_action_items.json`
+- `dataset_sentiment_engagement.json`
+- `dataset_translation_multilingual.json`
+- `audio_manifest.json`
+
+Evaluation entrypoint:
+
+```bash
+cd CS6493
+conda run -n cs6493 python scripts/evaluate.py --split dev --tasks summarization action_items sentiment translation
+conda run -n cs6493 python scripts/evaluate.py --split test --tasks summarization action_items sentiment translation
 ```
 
-## Prerequisites
+Final benchmark snapshot:
 
-### 1. vLLM Model Server
+- Dev
+  - summarization: `key_topics F1 1.0`, `decisions F1 1.0`, `blockers F1 1.0`, `next_steps F1 1.0`
+  - action items: `F1 1.0`
+  - sentiment: `overall_sentiment_accuracy 1.0`, `engagement_level_accuracy 1.0`
+  - translation: `line_similarity 1.0`, `speaker/timestamp preservation 1.0`
+- Test
+  - summarization: `key_topics F1 0.8`, `decisions F1 1.0`, `blockers F1 1.0`, `next_steps F1 1.0`
+  - action items: `F1 1.0`
+  - sentiment: `agreement/disagreement/tension F1 1.0`
+  - translation: `line_similarity 0.8693`, `speaker/timestamp preservation 1.0`
 
-Start `Qwen2.5-7B FP16` in the `qwen2.5` environment.
+## Runtime Configuration
+
+Final model choice:
+
+- `Qwen2.5-7B FP16`
+
+Recommended runtime split:
+
+- vLLM model server on GPU 7
+- ASR and diarization on GPU 3
+
+This avoids GPU contention between generation and audio processing.
+
+## Installation
+
+### 1. Start the model server
 
 ```bash
 bash /home/jiahuning2/LLM_Ability_Test/models/Qwen2.5-7B/start_vllm_fp16.sh
 ```
 
-Manual environment variables for the default profile:
-
-```bash
-export LLM_PROFILE=7b-fp16
-export VLLM_BASE_URL=http://127.0.0.1:8400/v1
-export VLLM_API_KEY=EMPTY
-export VLLM_MODEL=qwen2.5-7b-fp16
-```
-
-### 2. Python Environment
+### 2. Install Python dependencies
 
 ```bash
 cd /home/jiahuning2/LLM_Ability_Test/CS6493
 conda run -n cs6493 pip install -r requirements.txt
 ```
 
-### 3. Additional Dependencies (Optional)
+### 3. Configure environment
 
-For full ASR and diarization support:
-
-```bash
-pip install faster-whisper
-pip install whisperx
-# For pyannote (requires HF token):
-# pip install pyannote.audio
-```
-
-## Configuration
-
-Copy `.env.example` to `.env` and configure:
+Copy `.env.example` to `.env` if needed and adjust values:
 
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env`:
+Relevant settings:
 
 ```env
-# LLM runtime profile
 LLM_PROFILE=7b-fp16
-
-# vLLM Configuration
 VLLM_BASE_URL=http://127.0.0.1:8400/v1
 VLLM_API_KEY=EMPTY
 VLLM_MODEL=qwen2.5-7b-fp16
-
-# Server
 HOST=0.0.0.0
 PORT=6493
-DEBUG=false
-
-# ASR (optional)
 ASR_MODEL=medium
-ASR_DEVICE=cuda
-
-# Audio
-AUDIO_CHUNK_DURATION=5
-AUDIO_SAMPLE_RATE=16000
+ASR_DEVICE=cuda:3
+DIARIZATION_DEVICE=cuda:3
 ```
 
-## Running the Application
+## Running the App
 
-### 1. Start vLLM
-
-```bash
-# In one terminal
-cd /home/jiahuning2/LLM_Ability_Test/models/Qwen2.5-7B
-bash start_vllm_fp16.sh
-```
-
-### 2. Start the Meeting Assistant
-
-```bash
-# In another terminal
-cd /home/jiahuning2/LLM_Ability_Test/CS6493
-conda run -n cs6493 env LLM_PROFILE=7b-fp16 python -m backend.main
-```
-
-Or with uvicorn:
+Start the backend:
 
 ```bash
 cd /home/jiahuning2/LLM_Ability_Test/CS6493
-conda run -n cs6493 uvicorn backend.main:app --host 0.0.0.0 --port 6493
+bash run_backend.sh
 ```
 
-### 3. Access the Demo
+Then open:
 
-Open your browser:
-- Frontend: http://localhost:6493
-- API Docs: http://localhost:6493/docs
+- App: `http://127.0.0.1:6493`
+- API docs: `http://127.0.0.1:6493/docs`
 
-## API Usage
+## Project Structure
 
-### Health Check
-
-```bash
-curl http://localhost:6493/api/health
+```text
+CS6493/
+├── backend/
+│   ├── api/
+│   ├── core/
+│   ├── models/
+│   └── services/
+├── frontend/
+├── datasets/
+├── docs/
+├── scripts/
+├── tests/
+└── tools/
 ```
 
-### Transcribe Audio File
+## Notes
 
-```bash
-curl -X POST http://localhost:6493/api/transcribe/file \
-  -F "file=@meeting.wav" \
-  -F "language=en"
-```
-
-### Translate Text
-
-```bash
-curl -X POST http://localhost:6493/api/translate \
-  -H "Content-Type: application/json" \
-  -d '{
-    "text": "Hello everyone, welcome to the meeting",
-    "source_lang": "en",
-    "target_lang": "zh"
-  }'
-```
-
-### Summarize Meeting
-
-```bash
-curl -X POST http://localhost:6493/api/summarize \
-  -H "Content-Type: application/json" \
-  -d '{
-    "transcript": "Alice: Good morning... Bob: Thank you..."
-  }'
-```
-
-### Extract Action Items
-
-```bash
-curl -X POST http://localhost:6493/api/action-items \
-  -H "Content-Type: application/json" \
-  -d '{
-    "transcript": "Bob will finish the report by Friday..."
-  }'
-```
-
-### Analyze Sentiment
-
-```bash
-curl -X POST http://localhost:6493/api/sentiment \
-  -H "Content-Type: application/json" \
-  -d '{
-    "transcript": "I agree with this approach..."
-  }'
-```
-
-### Full Pipeline
-
-```bash
-curl -X POST http://localhost:6493/api/process-meeting \
-  -H "Content-Type: application/json" \
-  -d '{
-    "input_type": "text",
-    "text": "Meeting transcript here...",
-    "translate_to": "zh"
-  }'
-```
-
-## Demo Modes
-
-### Demo A: Audio File Upload
-Upload an audio file and get:
-- Fast transcript shown first
-- Background speaker refinement
-- Summary, action items, and sentiment analysis in parallel
-- Translation on demand
-
-### Demo B: Text Transcript Input
-Paste existing transcript text and get:
-- Translation
-- Summary
-- Action items
-- Sentiment analysis
-
-### Demo C: Microphone Input
-Record from microphone and get:
-- Incremental live transcription
-- Pause and resume recording
-- Background speaker refinement per chunk
-- Final meeting analysis after recording stops
-
-## Sample Data
-
-Test with sample data:
-
-```bash
-# Test with sample transcript
-cat sample_data/sample_meeting_transcript.txt
-
-# Test with Chinese sample
-cat sample_data/sample_meeting_zh.txt
-
-# Sample output
-cat sample_data/sample_meeting_output.json
-```
-
-## Testing
-
-```bash
-# Run all tests
-pytest tests/ -v
-
-# Run specific test
-pytest tests/test_services.py -v
-
-# Run with coverage
-pytest tests/ --cov=backend --cov-report=html
-```
-
-## Error Handling
-
-The application includes comprehensive error handling:
-- Invalid input validation
-- LLM response parsing with fallback
-- Service availability checks
-- Detailed error messages
-
-## Known Limitations
-
-1. **ASR latency**: full-file transcription is still the main bottleneck for longer recordings
-2. **Speaker refinement quality**: diarization quality depends on audio clarity and overlapping speech
-3. **Microphone recording**: browser recording requires localhost or HTTPS
-4. **Local model limits**: `Qwen2.5-7B FP16` is fast enough for demo use, but structured outputs may still need schema repair on difficult inputs
-
-## Future Optimizations
-
-1. Add evaluation scripts and a labeled meeting dataset for summary, action items, and sentiment
-2. Improve ASR cleanup and diarization robustness for noisy meetings
-3. Add evidence-linked highlighting between transcript segments and extracted results
-4. Expand multilingual evaluation cases
-5. Explore prompt tuning or lightweight SFT only after collecting enough error cases
-
-## License
-
-MIT License
-
-## Contact
-
-For issues and questions, please open an issue on the project repository.
+- The production UI no longer exposes internal demo-recording controls.
+- The project is optimized around stable structured outputs rather than raw generative text.
+- Prompt engineering, schema normalization, and fallback logic are all part of the final system design.
