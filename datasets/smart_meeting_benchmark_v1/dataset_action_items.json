@@ -1,0 +1,206 @@
+{
+  "dataset_name": "meeting_action_items_optimization_dataset",
+  "version": "3.0",
+  "dataset_goal": "Used to optimize action item extraction prompts and evaluate assignee, task, deadline, and evidence handling.",
+  "how_to_use": {
+    "prompt_optimization_target": "Reduce false positives, improve assignee and deadline extraction, and preserve source text evidence.",
+    "few_shot_usage": "Use one positive assignment example and one negative discussion-only example as few-shot demonstrations."
+  },
+  "cases": [
+    {
+      "id": "act_01",
+      "split": "train",
+      "title": "Clear Owner and Deadline",
+      "language": "en",
+      "input_type": "transcript_only",
+      "optimize_for": [
+        "clear assignment extraction",
+        "deadline extraction",
+        "source text alignment"
+      ],
+      "few_shot_candidate": true,
+      "transcript_segments": [
+        {
+          "speaker": "Manager",
+          "text": "Alice, please send the revised client deck by Friday morning."
+        },
+        {
+          "speaker": "Alice",
+          "text": "Sure, I will send the revised client deck by Friday morning."
+        }
+      ],
+      "light_reference": {
+        "reference_action_items": [
+          {
+            "assignee": "Alice",
+            "task": "Send the revised client deck",
+            "deadline": "Friday morning",
+            "priority": "medium",
+            "source_text": "Sure, I will send the revised client deck by Friday morning."
+          }
+        ]
+      },
+      "notes": "Best positive few-shot example."
+    },
+    {
+      "id": "act_02",
+      "split": "train",
+      "title": "Discussion Without Commitment",
+      "language": "en",
+      "input_type": "transcript_only",
+      "optimize_for": [
+        "reduce false positives",
+        "distinguish discussion from commitment"
+      ],
+      "few_shot_candidate": true,
+      "transcript_segments": [
+        {
+          "speaker": "Speaker 1",
+          "text": "Maybe we should simplify the signup flow before launch."
+        },
+        {
+          "speaker": "Speaker 2",
+          "text": "That could help, but we still need more feedback from users."
+        }
+      ],
+      "light_reference": {
+        "reference_action_items": []
+      },
+      "notes": "Negative few-shot example."
+    },
+    {
+      "id": "act_03",
+      "split": "dev",
+      "title": "Ambiguous Owner",
+      "language": "en",
+      "input_type": "transcript_only",
+      "optimize_for": [
+        "unknown assignee handling",
+        "deadline extraction from vague time phrases"
+      ],
+      "few_shot_candidate": false,
+      "transcript_segments": [
+        {
+          "speaker": "Lead",
+          "text": "Someone should follow up with the vendor this week."
+        }
+      ],
+      "light_reference": {
+        "reference_action_items": [
+          {
+            "assignee": "unknown",
+            "task": "Follow up with the vendor",
+            "deadline": "this week",
+            "priority": "medium",
+            "source_text": "Someone should follow up with the vendor this week."
+          }
+        ]
+      },
+      "notes": "Checks whether the model invents an owner."
+    },
+    {
+      "id": "act_04",
+      "split": "dev",
+      "title": "Multiple Assignments in One Meeting",
+      "language": "en",
+      "input_type": "transcript_only",
+      "optimize_for": [
+        "multi-item extraction",
+        "deduplication",
+        "priority consistency"
+      ],
+      "few_shot_candidate": false,
+      "transcript_segments": [
+        {
+          "speaker": "PM",
+          "text": "Bob, update the roadmap tonight."
+        },
+        {
+          "speaker": "Bob",
+          "text": "Okay, I will update it tonight."
+        },
+        {
+          "speaker": "PM",
+          "text": "Carol, please confirm the numbers with finance tomorrow morning."
+        },
+        {
+          "speaker": "Carol",
+          "text": "Got it, I will confirm them tomorrow morning."
+        }
+      ],
+      "light_reference": {
+        "reference_action_items": [
+          {
+            "assignee": "Bob",
+            "task": "Update the roadmap",
+            "deadline": "tonight",
+            "priority": "medium",
+            "source_text": "Okay, I will update it tonight."
+          },
+          {
+            "assignee": "Carol",
+            "task": "Confirm the numbers with finance",
+            "deadline": "tomorrow morning",
+            "priority": "medium",
+            "source_text": "Got it, I will confirm them tomorrow morning."
+          }
+        ]
+      },
+      "notes": "Good multi-item extraction dev case."
+    },
+    {
+      "id": "act_05",
+      "split": "test",
+      "title": "Launch Readiness Follow-ups",
+      "language": "en",
+      "input_type": "transcript_only",
+      "optimize_for": [
+        "commitment grounding",
+        "deadline extraction",
+        "avoid duplicate tasks"
+      ],
+      "few_shot_candidate": false,
+      "transcript_segments": [
+        {
+          "speaker": "Director",
+          "text": "Nina, please send the final launch checklist by 3 PM."
+        },
+        {
+          "speaker": "Nina",
+          "text": "I will send the final launch checklist by 3 PM."
+        },
+        {
+          "speaker": "Director",
+          "text": "Raj, can you verify the analytics dashboard before tomorrow's review?"
+        },
+        {
+          "speaker": "Raj",
+          "text": "Yes, I will verify the analytics dashboard tonight."
+        },
+        {
+          "speaker": "Director",
+          "text": "We should also discuss whether the help center article needs edits."
+        }
+      ],
+      "light_reference": {
+        "reference_action_items": [
+          {
+            "assignee": "Nina",
+            "task": "Send the final launch checklist",
+            "deadline": "3 PM",
+            "priority": "medium",
+            "source_text": "I will send the final launch checklist by 3 PM."
+          },
+          {
+            "assignee": "Raj",
+            "task": "Verify the analytics dashboard",
+            "deadline": "tonight",
+            "priority": "medium",
+            "source_text": "Yes, I will verify the analytics dashboard tonight."
+          }
+        ]
+      },
+      "notes": "Held-out test with both explicit and non-action discussion."
+    }
+  ]
+}

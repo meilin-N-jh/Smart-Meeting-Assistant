@@ -1,0 +1,148 @@
+{
+  "dataset_name": "meeting_translation_multilingual_optimization_dataset",
+  "version": "3.0",
+  "dataset_goal": "Used to optimize multilingual meeting translation prompts while preserving structure.",
+  "how_to_use": {
+    "prompt_optimization_target": "Preserve speaker labels and timestamps, keep one line per input line, and translate commitments accurately.",
+    "few_shot_usage": "Use one line-structured translation example and one mixed-language example as few-shot references."
+  },
+  "cases": [
+    {
+      "id": "tr_01",
+      "split": "train",
+      "title": "English to Chinese Structured Translation",
+      "language": "en",
+      "target_language": "zh",
+      "input_type": "transcript_only",
+      "optimize_for": [
+        "preserve speaker labels",
+        "preserve timestamps",
+        "accurate commitment translation"
+      ],
+      "few_shot_candidate": true,
+      "transcript_segments": [
+        {
+          "start": 0.0,
+          "speaker": "Alice",
+          "text": "I will send the revised deck by Friday."
+        },
+        {
+          "start": 4.2,
+          "speaker": "Bob",
+          "text": "Please also update the roadmap section before the client meeting."
+        }
+      ],
+      "light_reference": {
+        "reference_translation_style": [
+          "[0.0] Alice: 我会在周五之前发送修订后的演示文稿。",
+          "[4.2] Bob: 也请在客户会议之前更新路线图部分。"
+        ]
+      },
+      "notes": "Best few-shot example for structured line-preserving translation."
+    },
+    {
+      "id": "tr_02",
+      "split": "train",
+      "title": "Mixed Chinese-English Meeting to English",
+      "language": "mixed_en_zh",
+      "target_language": "en",
+      "input_type": "transcript_only",
+      "optimize_for": [
+        "mixed-language handling",
+        "structure preservation",
+        "meeting-friendly wording"
+      ],
+      "few_shot_candidate": true,
+      "transcript_segments": [
+        {
+          "start": 0.0,
+          "speaker": "Speaker A",
+          "text": "We need to simplify the signup page."
+        },
+        {
+          "start": 3.2,
+          "speaker": "Speaker B",
+          "text": "我觉得第一步太复杂了，用户可能会放弃。"
+        },
+        {
+          "start": 7.6,
+          "speaker": "Speaker C",
+          "text": "Let's test two simpler versions this week."
+        }
+      ],
+      "light_reference": {
+        "reference_translation_style": [
+          "[0.0] Speaker A: We need to simplify the signup page.",
+          "[3.2] Speaker B: I think the first step is too complicated, and users may give up.",
+          "[7.6] Speaker C: Let's test two simpler versions this week."
+        ]
+      },
+      "notes": "Best few-shot example for multilingual meetings."
+    },
+    {
+      "id": "tr_03",
+      "split": "dev",
+      "title": "English to Japanese Status Update",
+      "language": "en",
+      "target_language": "ja",
+      "input_type": "transcript_only",
+      "optimize_for": [
+        "consistent line mapping",
+        "date and ownership accuracy"
+      ],
+      "few_shot_candidate": false,
+      "transcript_segments": [
+        {
+          "start": 0.0,
+          "speaker": "Lead",
+          "text": "Ken will confirm the vendor quote tomorrow."
+        },
+        {
+          "start": 3.0,
+          "speaker": "Ken",
+          "text": "Yes, I will send the update by noon."
+        }
+      ],
+      "light_reference": {
+        "reference_translation_style": [
+          "[0.0] Lead: Ken will confirm the vendor quote tomorrow.",
+          "[3.0] Ken: はい、正午までに更新を送ります。"
+        ]
+      },
+      "notes": "Useful for line mapping and commitment translation."
+    },
+    {
+      "id": "tr_04",
+      "split": "test",
+      "title": "Chinese Vendor Update to English",
+      "language": "zh",
+      "target_language": "en",
+      "input_type": "transcript_only",
+      "optimize_for": [
+        "Chinese to English translation",
+        "speaker preservation",
+        "task fidelity"
+      ],
+      "few_shot_candidate": false,
+      "transcript_segments": [
+        {
+          "start": 0.0,
+          "speaker": "采购",
+          "text": "供应商报价已经更新，但交付时间还没有确认。"
+        },
+        {
+          "start": 4.1,
+          "speaker": "项目经理",
+          "text": "请你今天下午跟进供应商，并在明早会议前同步结果。"
+        }
+      ],
+      "light_reference": {
+        "reference_translation_style": [
+          "[0.0] 采购: The vendor quote has been updated, but the delivery timeline is not confirmed yet.",
+          "[4.1] 项目经理: Please follow up with the vendor this afternoon and share the result before tomorrow morning's meeting."
+        ]
+      },
+      "notes": "Held-out Chinese to English test case."
+    }
+  ]
+}

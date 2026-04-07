@@ -1,0 +1,214 @@
+{
+  "dataset_name": "meeting_summarization_optimization_dataset",
+  "version": "3.0",
+  "dataset_goal": "Used to optimize meeting summarization prompts and evaluate structure quality, decisions, blockers, and next steps.",
+  "how_to_use": {
+    "prompt_optimization_target": "Improve overview quality, reduce hallucinated decisions and blockers, and keep next steps concrete.",
+    "few_shot_usage": "Select 1-2 train cases with stable outputs as in-context examples for the summarization prompt."
+  },
+  "cases": [
+    {
+      "id": "sum_01",
+      "split": "train",
+      "title": "Weekly Product Planning",
+      "language": "en",
+      "input_type": "transcript_only",
+      "optimize_for": [
+        "summary structure stability",
+        "better overview generation",
+        "clear decisions vs next steps separation"
+      ],
+      "few_shot_candidate": true,
+      "transcript_segments": [
+        {
+          "speaker": "PM",
+          "text": "Today we need to finalize the onboarding release plan and confirm the copy changes."
+        },
+        {
+          "speaker": "Designer",
+          "text": "The new onboarding screens are ready, but legal still needs to review the welcome message."
+        },
+        {
+          "speaker": "Engineer",
+          "text": "The feature flag is already prepared, and we can enable it next Tuesday."
+        },
+        {
+          "speaker": "PM",
+          "text": "Then let's keep the release target for next Tuesday if legal approval arrives by Monday."
+        }
+      ],
+      "light_reference": {
+        "reference_summary": {
+          "overview": "The team reviewed onboarding release readiness, including UI completion, legal review, and rollout timing.",
+          "key_topics": [
+            "onboarding release",
+            "copy review",
+            "feature flag readiness"
+          ],
+          "decisions": [
+            "Keep the release target for next Tuesday if legal approval arrives by Monday."
+          ],
+          "blockers": [
+            "Legal review of the welcome message is still pending."
+          ],
+          "next_steps": [
+            "Obtain legal approval by Monday."
+          ]
+        }
+      },
+      "notes": "Strong few-shot candidate for conditional decisions."
+    },
+    {
+      "id": "sum_02",
+      "split": "train",
+      "title": "Research Progress Check-in",
+      "language": "en",
+      "input_type": "transcript_only",
+      "optimize_for": [
+        "concise summary writing",
+        "blocker detection",
+        "avoiding invented decisions"
+      ],
+      "few_shot_candidate": true,
+      "transcript_segments": [
+        {
+          "speaker": "Lead",
+          "text": "We completed most of the data cleaning work this week."
+        },
+        {
+          "speaker": "Member A",
+          "text": "The missing value issue is resolved now."
+        },
+        {
+          "speaker": "Member B",
+          "text": "Model training is still behind because the training script is not stable yet."
+        },
+        {
+          "speaker": "Lead",
+          "text": "Okay, let's focus on stabilizing the training script first."
+        }
+      ],
+      "light_reference": {
+        "reference_summary": {
+          "overview": "The team discussed progress on data cleaning and the remaining delay in model training.",
+          "key_topics": [
+            "data cleaning",
+            "missing values",
+            "training script stability"
+          ],
+          "decisions": [],
+          "blockers": [
+            "The training script is not stable yet."
+          ],
+          "next_steps": [
+            "Prioritize stabilizing the training script."
+          ]
+        }
+      },
+      "notes": "Useful for preventing hallucinated formal decisions."
+    },
+    {
+      "id": "sum_03",
+      "split": "dev",
+      "title": "Incident Review and Rollback",
+      "language": "en",
+      "input_type": "transcript_only",
+      "optimize_for": [
+        "decision extraction",
+        "blocker precision",
+        "next-step grounding"
+      ],
+      "few_shot_candidate": false,
+      "transcript_segments": [
+        {
+          "speaker": "SRE",
+          "text": "We saw a 30 percent error spike after the payment patch went live."
+        },
+        {
+          "speaker": "Engineering Manager",
+          "text": "Roll back the patch now and keep traffic on the previous version."
+        },
+        {
+          "speaker": "Backend Engineer",
+          "text": "I can prepare a fixed patch by tomorrow afternoon after we isolate the timeout issue."
+        },
+        {
+          "speaker": "Product Manager",
+          "text": "Then today's decision is rollback now and review the fixed patch tomorrow."
+        }
+      ],
+      "light_reference": {
+        "reference_summary": {
+          "overview": "The team reviewed a payment incident, decided to roll back the patch, and planned a follow-up review after a fix is prepared.",
+          "key_topics": [
+            "payment patch incident",
+            "rollback decision",
+            "timeout investigation"
+          ],
+          "decisions": [
+            "Roll back the payment patch immediately."
+          ],
+          "blockers": [
+            "The timeout issue causing the error spike is not isolated yet."
+          ],
+          "next_steps": [
+            "Prepare a fixed patch by tomorrow afternoon.",
+            "Review the fixed patch tomorrow."
+          ]
+        }
+      },
+      "notes": "Good dev case for explicit operations decisions."
+    },
+    {
+      "id": "sum_04",
+      "split": "test",
+      "title": "Bilingual Vendor Contract Sync",
+      "language": "mixed_en_zh",
+      "input_type": "transcript_only",
+      "optimize_for": [
+        "multilingual summary stability",
+        "blocker detection",
+        "conditional planning"
+      ],
+      "few_shot_candidate": false,
+      "transcript_segments": [
+        {
+          "speaker": "PM",
+          "text": "We need to finalize the vendor contract timeline today."
+        },
+        {
+          "speaker": "Legal",
+          "text": "合同条款基本没问题，但付款条款还需要再确认一次。"
+        },
+        {
+          "speaker": "Operations",
+          "text": "If legal can clear the payment clause by Thursday, we can sign on Friday."
+        },
+        {
+          "speaker": "PM",
+          "text": "好，那我们先保留周五签约目标，但付款条款是当前 blocker。"
+        }
+      ],
+      "light_reference": {
+        "reference_summary": {
+          "overview": "The team reviewed vendor contract timing and agreed to keep a Friday signing target while legal confirms the payment clause.",
+          "key_topics": [
+            "vendor contract timeline",
+            "payment clause review",
+            "Friday signing target"
+          ],
+          "decisions": [
+            "Keep Friday as the provisional signing target."
+          ],
+          "blockers": [
+            "The payment clause still needs legal confirmation."
+          ],
+          "next_steps": [
+            "Legal should clear the payment clause by Thursday."
+          ]
+        }
+      },
+      "notes": "Held-out multilingual summary test."
+    }
+  ]
+}

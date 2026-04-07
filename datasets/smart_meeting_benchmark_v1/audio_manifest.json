@@ -1,0 +1,18 @@
+{
+  "dataset_name": "meeting_audio_manifest",
+  "version": "1.0",
+  "cases": [
+    {
+      "id": "audio_01",
+      "title": "Three Person Meeting Demo Audio",
+      "language": "en",
+      "audio_path": "test_assets/generated_audio/three_person_meeting_3min.wav",
+      "companion_transcript_path": "test_assets/generated_audio/three_person_meeting_transcript.txt",
+      "intended_use": [
+        "asr latency measurement",
+        "speaker refinement demo",
+        "end-to-end UI verification"
+      ]
+    }
+  ]
+}

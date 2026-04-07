@@ -1,0 +1,194 @@
+{
+  "dataset_name": "meeting_sentiment_engagement_optimization_dataset",
+  "version": "3.0",
+  "dataset_goal": "Used to optimize sentiment and engagement prompts for meeting dynamics rather than generic sentiment classification.",
+  "how_to_use": {
+    "prompt_optimization_target": "Improve extraction of agreements, disagreements, hesitation, tension points, and evidence quotes.",
+    "few_shot_usage": "Use one supportive case and one disagreement-heavy case as contrastive few-shot examples."
+  },
+  "cases": [
+    {
+      "id": "sen_01",
+      "split": "train",
+      "title": "Supportive Planning Discussion",
+      "language": "en",
+      "input_type": "transcript_only",
+      "optimize_for": [
+        "agreement detection",
+        "positive collaboration tone",
+        "evidence quote formatting"
+      ],
+      "few_shot_candidate": true,
+      "transcript_segments": [
+        {
+          "speaker": "Speaker 1",
+          "text": "I think the rollout plan looks solid."
+        },
+        {
+          "speaker": "Speaker 2",
+          "text": "I agree, and the timeline seems realistic."
+        },
+        {
+          "speaker": "Speaker 3",
+          "text": "Yes, I am comfortable moving forward."
+        }
+      ],
+      "light_reference": {
+        "reference_sentiment": {
+          "overall_sentiment": "positive",
+          "engagement_level": "medium",
+          "agreements": [
+            "Team members explicitly supported the rollout plan."
+          ],
+          "disagreements": [],
+          "hesitation_signals": [],
+          "tension_points": [],
+          "evidence_quotes": [
+            "I agree, and the timeline seems realistic."
+          ]
+        }
+      },
+      "notes": "Positive few-shot example for agreement-heavy meetings."
+    },
+    {
+      "id": "sen_02",
+      "split": "train",
+      "title": "Disagreement and Risk Concern",
+      "language": "en",
+      "input_type": "transcript_only",
+      "optimize_for": [
+        "disagreement detection",
+        "hesitation detection",
+        "tension point extraction"
+      ],
+      "few_shot_candidate": true,
+      "transcript_segments": [
+        {
+          "speaker": "PM",
+          "text": "Let's commit to the current launch date."
+        },
+        {
+          "speaker": "Engineer",
+          "text": "I am not convinced this will work if testing slips again."
+        },
+        {
+          "speaker": "Designer",
+          "text": "I share that concern. The current timeline still feels risky."
+        }
+      ],
+      "light_reference": {
+        "reference_sentiment": {
+          "overall_sentiment": "mixed",
+          "engagement_level": "high",
+          "agreements": [
+            "Designer agrees with the engineer's concern."
+          ],
+          "disagreements": [
+            "Engineer pushes back on committing to the current launch date."
+          ],
+          "hesitation_signals": [
+            "The current timeline still feels risky."
+          ],
+          "tension_points": [
+            "Launch timing is disputed because of testing risk."
+          ],
+          "evidence_quotes": [
+            "I am not convinced this will work if testing slips again.",
+            "The current timeline still feels risky."
+          ]
+        }
+      },
+      "notes": "Best disagreement-heavy few-shot example."
+    },
+    {
+      "id": "sen_03",
+      "split": "dev",
+      "title": "Low-Energy Neutral Check-in",
+      "language": "en",
+      "input_type": "transcript_only",
+      "optimize_for": [
+        "low engagement detection",
+        "avoid overcalling tension"
+      ],
+      "few_shot_candidate": false,
+      "transcript_segments": [
+        {
+          "speaker": "Lead",
+          "text": "Any updates on the dashboard migration?"
+        },
+        {
+          "speaker": "Member A",
+          "text": "Not much this week. I am still reviewing the logs."
+        },
+        {
+          "speaker": "Member B",
+          "text": "Same here, no major changes yet."
+        }
+      ],
+      "light_reference": {
+        "reference_sentiment": {
+          "overall_sentiment": "neutral",
+          "engagement_level": "low",
+          "agreements": [],
+          "disagreements": [],
+          "hesitation_signals": [],
+          "tension_points": [],
+          "evidence_quotes": []
+        }
+      },
+      "notes": "Checks false-positive disagreement or tension."
+    },
+    {
+      "id": "sen_04",
+      "split": "test",
+      "title": "Cross-Functional Launch Escalation",
+      "language": "mixed_en_zh",
+      "input_type": "transcript_only",
+      "optimize_for": [
+        "multilingual tension detection",
+        "risk-oriented disagreement",
+        "engagement estimation"
+      ],
+      "few_shot_candidate": false,
+      "transcript_segments": [
+        {
+          "speaker": "PM",
+          "text": "We need to keep the launch date unless there is a critical blocker."
+        },
+        {
+          "speaker": "QA",
+          "text": "I am worried because the crash rate is still too high."
+        },
+        {
+          "speaker": "Engineering Lead",
+          "text": "我同意 QA 的担心，如果今天不解决这个问题，周五上线太冒险了。"
+        },
+        {
+          "speaker": "PM",
+          "text": "I hear the concern, but delaying again will hurt the campaign."
+        }
+      ],
+      "light_reference": {
+        "reference_sentiment": {
+          "overall_sentiment": "mixed",
+          "engagement_level": "high",
+          "agreements": [
+            "Engineering Lead agrees with QA's concern."
+          ],
+          "disagreements": [
+            "QA and Engineering Lead push back on keeping the current launch date."
+          ],
+          "hesitation_signals": [],
+          "tension_points": [
+            "There is tension between launch timing and product quality risk."
+          ],
+          "evidence_quotes": [
+            "I am worried because the crash rate is still too high.",
+            "如果今天不解决这个问题，周五上线太冒险了。"
+          ]
+        }
+      },
+      "notes": "Held-out multilingual meeting-dynamics case."
+    }
+  ]
+}
